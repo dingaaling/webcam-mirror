@@ -78,7 +78,7 @@ def getFacebookData():
     return peerGroupDisplay, locationDisplay, adInterestDisplay, adInteractDisplay
 
 
-showEdge = 1
+showEdge = 0
 peerGroupDisplay, locationDisplay, adInterestDisplay, adInteractDisplay  = getFacebookData()
 ts = int(locationDisplay['creation_timestamp'])
 color=np.random.rand(3,)*255
@@ -126,6 +126,10 @@ while (video_capture.isOpened()):
         # edge = cv2.Canny(grayscale, 75, 125)
         edge = cv2.Laplacian(grayscale,cv2.CV_64F)
 
+        grayscale_face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+        corners = cv2.goodFeaturesToTrack(grayscale_face, 100, 0.01, 10)
+        corners = np.int0(corners)
+
 
         if showEdge:
 
@@ -141,18 +145,22 @@ while (video_capture.isOpened()):
 
         else:
 
-            cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
-            cv2.putText(frame, "Gender Prediction: " + str(gender),(int(x-w*1.2), y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
-            cv2.putText(frame, "Age Estimation: " + str(age),(int(x-w*1.2), int(y + h*0.5)),cv2.FONT_HERSHEY_SIMPLEX, 0.7,color,2, cv2.LINE_AA)
+            for corner in corners:
+                cx,cy = corner.ravel()
+                cv2.circle(im_blur,(cx+x,cy+y),3,color,-1)
 
-            cv2.putText(frame, "Friend Peer Group: " + peerGroupDisplay,(x+w+30, int(y + h*0.25)),cv2.FONT_HERSHEY_SIMPLEX, 0.7,color,2, cv2.LINE_AA)
-            cv2.putText(frame, "Ad Interest: " + adInterestDisplay,(x+w+30, int(y + h*0.5)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
-            cv2.putText(frame, adInteractDisplay['action'] + ": " + adInteractDisplay['title'],(x+w+30, int(y + h*0.75)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
-            cv2.putText(frame, "Detected location: " + locationDisplay['name'] + ' on ' + datetime.utcfromtimestamp(ts).strftime('%m/%d/%Y'), (x+w+30, int(y + h*0.95)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
+            cv2.rectangle(im_blur, (x, y), (x+w, y+h), color, 2)
+            cv2.putText(im_blur, "Gender Prediction: " + str(gender),(int(x-w*1.2), int(y + h*0.25)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
+            cv2.putText(im_blur, "Age Estimation: " + str(age),(int(x-w*1.2), int(y + h*0.5)),cv2.FONT_HERSHEY_SIMPLEX, 0.7,color,2, cv2.LINE_AA)
+
+            cv2.putText(im_blur, "Friend Peer Group: " + peerGroupDisplay,(x+w+30, int(y + h*0.25)),cv2.FONT_HERSHEY_SIMPLEX, 0.7,color,2, cv2.LINE_AA)
+            cv2.putText(im_blur, "Ad Interest: " + adInterestDisplay,(x+w+30, int(y + h*0.5)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
+            cv2.putText(im_blur, adInteractDisplay['action'] + ": " + adInteractDisplay['title'],(x+w+30, int(y + h*0.75)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
+            cv2.putText(im_blur, "Detected location: " + locationDisplay['name'] + ' on ' + datetime.utcfromtimestamp(ts).strftime('%m/%d/%Y'), (x+w+30, int(y + h*0.95)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
 
 
             # Display the resulting frame
-            cv2.imshow('FaceDetection', frame)
+            cv2.imshow('FaceDetection', im_blur)
 
     #ESC Pressed
     if k== 27:
