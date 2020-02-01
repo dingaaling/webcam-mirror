@@ -1,4 +1,6 @@
-import cv2, sys
+import cv2, sys, os, json, random, time
+from datetime import datetime
+import numpy as np
 
 faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
@@ -16,7 +18,71 @@ ageModel = "age_net.caffemodel"
 genderProto = "gender_deploy.prototxt"
 genderModel = "gender_net.caffemodel"
 
-showEdge = 1
+fb_dict = dict()
+fb_dict["about_you"] = "friend_peer_group.json"
+fb_dict["ads_and_businesses"] = ["ads_interests.json", "advertisers_you've_interacted_with.json"]
+fb_dict["location"] = "location_history.json"
+
+fb_data = dict()
+fb_data["friend_peer_group.json"] = 'friend_peer_group'
+fb_data["ads_interests.json"] = 'topics'
+fb_data["location_history.json"] = 'location_history'
+fb_data["advertisers_you've_interacted_with.json"] = 'history'
+
+
+data_path = os.path.abspath(os.getcwd()) + "/data/"
+
+
+def readJson(filePath):
+    with open(filePath) as json_file:
+        f = json.load(json_file)
+    return f
+
+def getFacebookData():
+
+    peerGroup, adInterests, adInteracts, location = [], [], [], []
+
+    for dir_name in os.listdir(data_path):
+        if dir_name.startswith("facebook"):
+            fbPath = data_path + dir_name + "/"
+
+    for folder in os.listdir(fbPath):
+        if folder in fb_dict.keys():
+
+            if folder =="about_you":
+                filePath = fbPath + folder + "/" + fb_dict[folder]
+                f = readJson(filePath)
+                peerGroup = f[fb_data[fb_dict[folder]]]
+
+            elif folder == 'location':
+                filePath = fbPath + folder + "/" + fb_dict[folder]
+                f = readJson(filePath)
+                location = f[fb_data[fb_dict[folder]]]
+
+            elif folder == 'ads_and_businesses':
+                for file in fb_dict[folder]:
+                    if file == "ads_interests.json":
+                        filePath = fbPath + folder + "/" + file
+                        f = readJson(filePath)
+                        adInterests = f[fb_data[file]]
+                    elif file == "advertisers_you've_interacted_with.json":
+                        filePath = fbPath + folder + "/" + file
+                        f = readJson(filePath)
+                        adInteracts = f[fb_data[file]]
+
+    peerGroupDisplay = peerGroup
+    locationDisplay = random.sample(location, 1)[0]
+    adInterestDisplay = random.sample(adInterests, 1)[0]
+    adInteractDisplay = random.sample(adInteracts, 1)[0]
+
+    return peerGroupDisplay, locationDisplay, adInterestDisplay, adInteractDisplay
+
+
+showEdge = 0
+peerGroupDisplay, locationDisplay, adInterestDisplay, adInteractDisplay  = getFacebookData()
+ts = int(locationDisplay['creation_timestamp'])
+color=np.random.rand(3,)*255
+
 while (video_capture.isOpened()):
 
     # Capture frame-by-frame
@@ -61,6 +127,7 @@ while (video_capture.isOpened()):
         if showEdge:
 
             cv2.rectangle(edge, (x, y), (x+w, y+h), (255, 64, 64), 2)
+
             cv2.putText(edge, "Location: 11201",(x+w+30, y), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,64,64),2, cv2.LINE_AA)
             cv2.putText(edge, "Most Likely 311 Complaint: Sidewalk",(x+w+30, int(y + h*0.25)),cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,64,64),2, cv2.LINE_AA)
             cv2.putText(edge, "Voter Status: Not Registered in New York",(x+w+30, int(y + h*0.5)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,64,64),2, cv2.LINE_AA)
@@ -70,22 +137,35 @@ while (video_capture.isOpened()):
             cv2.imshow('FaceDetection', edge)
 
         else:
-            cv2.rectangle(grayscale, (x, y), (x+w, y+h), (255, 64, 64), 2)
-            cv2.putText(grayscale, "Gender Prediction:" + str(gender),(x-w, y), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,155,255),2, cv2.LINE_AA)
-            cv2.putText(grayscale, "Age Estimation:" + str(age),(x-w, int(y + h*0.5)),cv2.FONT_HERSHEY_SIMPLEX, 0.75,(0,155,255),2, cv2.LINE_AA)
 
-            cv2.putText(grayscale, "Friend Peer Group: Starting Adult Life",(x+w+30, int(y + h*0.25)),cv2.FONT_HERSHEY_SIMPLEX, 0.75,(0,155,255),2, cv2.LINE_AA)
-            cv2.putText(grayscale, "Ad Interests: Espresso machine",(x+w+30, int(y + h*0.5)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,155,255),2, cv2.LINE_AA)
-            cv2.putText(grayscale, "Clicked Ads: PubPass",(x+w+30, int(y + h*0.75)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,155,255),2, cv2.LINE_AA)
+            cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
+            cv2.putText(frame, "Gender Prediction: " + str(gender),(int(x-w*1.2), y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
+            cv2.putText(frame, "Age Estimation: " + str(age),(int(x-w*1.2), int(y + h*0.5)),cv2.FONT_HERSHEY_SIMPLEX, 0.7,color,2, cv2.LINE_AA)
+
+            cv2.putText(frame, "Friend Peer Group: " + peerGroupDisplay,(x+w+30, int(y + h*0.25)),cv2.FONT_HERSHEY_SIMPLEX, 0.7,color,2, cv2.LINE_AA)
+            cv2.putText(frame, "Ad Interest: " + adInterestDisplay,(x+w+30, int(y + h*0.5)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
+            cv2.putText(frame, adInteractDisplay['action'] + ": " + adInteractDisplay['title'],(x+w+30, int(y + h*0.75)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
+            cv2.putText(frame, "Detected location: " + locationDisplay['name'] + ' on ' + datetime.utcfromtimestamp(ts).strftime('%m/%d/%Y'), (x+w+30, int(y + h*0.95)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color,2, cv2.LINE_AA)
+
 
             # Display the resulting frame
-            cv2.imshow('FaceDetection', grayscale)
+            cv2.imshow('FaceDetection', frame)
 
     #ESC Pressed
     if k== 27:
         break
+
     #SPACE pressed
     elif k== 32:
+
+        if showEdge==False:
+            peerGroupDisplay, locationDisplay, adInterestDisplay, adInteractDisplay  = getFacebookData()
+            ts = int(locationDisplay['creation_timestamp'])
+            color=np.random.rand(3,)*255
+            print(color)
+
+    #s pressed
+    elif k== 115:
         img_name = "facedetect_webcam_{}.png".format(img_counter)
         cv2.imwrite(img_name, edge)
         print("{} written!".format(img_name))
