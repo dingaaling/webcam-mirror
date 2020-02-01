@@ -78,7 +78,7 @@ def getFacebookData():
     return peerGroupDisplay, locationDisplay, adInterestDisplay, adInteractDisplay
 
 
-showEdge = 0
+showEdge = 1
 peerGroupDisplay, locationDisplay, adInterestDisplay, adInteractDisplay  = getFacebookData()
 ts = int(locationDisplay['creation_timestamp'])
 color=np.random.rand(3,)*255
@@ -120,8 +120,11 @@ while (video_capture.isOpened()):
         # print("Age : {}".format(age))
 
 
-        grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        edge = cv2.Canny(grayscale, 75, 125)
+        im_blur = cv2.GaussianBlur(frame,(7,7),0)
+
+        grayscale = cv2.cvtColor(im_blur, cv2.COLOR_BGR2GRAY)
+        # edge = cv2.Canny(grayscale, 75, 125)
+        edge = cv2.Laplacian(grayscale,cv2.CV_64F)
 
 
         if showEdge:
@@ -129,7 +132,7 @@ while (video_capture.isOpened()):
             cv2.rectangle(edge, (x, y), (x+w, y+h), (255, 64, 64), 2)
 
             cv2.putText(edge, "Location: 11201",(x+w+30, y), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,64,64),2, cv2.LINE_AA)
-            cv2.putText(edge, "Most Likely 311 Complaint: Sidewalk",(x+w+30, int(y + h*0.25)),cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,64,64),2, cv2.LINE_AA)
+            cv2.putText(edge, "Most Likely 311 Complaint: Noise - Residential",(x+w+30, int(y + h*0.25)),cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,64,64),2, cv2.LINE_AA)
             cv2.putText(edge, "Voter Status: Not Registered in New York",(x+w+30, int(y + h*0.5)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,64,64),2, cv2.LINE_AA)
             cv2.putText(edge, "Tax Bracket: ?",(x+w+30, int(y + h*0.75)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,64,64),2, cv2.LINE_AA)
 
@@ -155,10 +158,14 @@ while (video_capture.isOpened()):
     if k== 27:
         break
 
+    #c pressed
+    elif k==99:
+        showEdge = not showEdge
+
     #SPACE pressed
     elif k== 32:
 
-        if showEdge==False:
+        if showEdge==0:
             peerGroupDisplay, locationDisplay, adInterestDisplay, adInteractDisplay  = getFacebookData()
             ts = int(locationDisplay['creation_timestamp'])
             color=np.random.rand(3,)*255
