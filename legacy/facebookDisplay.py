@@ -1,9 +1,10 @@
-import cv2, os, json, random
+import cv2, os, json, random, zipfile
 import numpy as np
 from ageGenderDetect import *
 
 video_capture = cv2.VideoCapture(0)
 video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 if video_capture.isOpened():
     frame_width  = int(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))   # float
@@ -18,17 +19,24 @@ color = random.sample(color_list, 1)[0]
 
 data_path = os.path.abspath(os.getcwd()) + "/data/"
 
+def extractZip(fileName):
+
+    downloadPath = "/Users/jending12/Downloads/" + fileName
+    savePath = data_path + fileName
+    with zipfile.ZipFile(downloadPath,"r") as zip_ref:
+        zip_ref.extractall(savePath)
+
 def readJson(filePath):
     with open(filePath) as json_file:
         f = json.load(json_file)
     return f
 
-def getFacebookData():
+def getFacebookData(fileName):
 
     adInterests = []
 
     for dir_name in os.listdir(data_path):
-        if dir_name.startswith("facebook"):
+        if dir_name.startswith(fileName):
             filePath = data_path + dir_name + "/ads_and_businesses/ads_interests.json"
             if filePath:
                 f = readJson(filePath)
@@ -74,15 +82,21 @@ def facebookTextStyling(final_output, x, y, w, h, peerGroupDisplay, adInterestDi
     return final_output
 
 
-adInterestDisplay, numAdInterests  = getFacebookData()
+# try:
+#     extractZip("facebook-zaidhaque5.zip")
+# except:
+#     print("not good data")
+
+facebook_filename = "facebook-p"
+adInterestDisplay, numAdInterests  = getFacebookData(facebook_filename)
 
 while (video_capture.isOpened()):
 
     # pull webcam frames and convert to grayscale to detect face
     ret, frame = video_capture.read()
+    k = cv2.waitKeyEx(1)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    k = cv2.waitKeyEx(1)
     faces = faceCascade.detectMultiScale(
         gray,
         scaleFactor=1.2,
@@ -118,7 +132,7 @@ while (video_capture.isOpened()):
 
         # Hotkey - SPACE pressed - Change Data and Color
         elif k== 32:
-            adInterestDisplay, numAdInterests  = getFacebookData()
+            adInterestDisplay, numAdInterests  = getFacebookData(facebook_filename)
             color = random.sample(color_list, 1)[0]
 
         #s pressed

@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 
-faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
 genderList = ['Male', 'Female']

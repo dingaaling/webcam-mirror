@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+
+      <title>I AM THEREFORE I AM</title>
+
+  </head>
+
+  <body>
+
+    <div class="container">
+
+      <div class="row">
+              <h1>EXPLORE YOUR DATA IDENTITY</h1>
+      </div>
+
+      <br>
+
+      <form action="" method="POST">
+        <div class="form-group">
+              <label for="inputZipcode">Zipcode</label>
+              <input type="zipcode" name="inputZipcode" class="form-control" id="inputZipcode" placeholder="Ex. 11201", aria-describedby="zipHelp">
+              <small id="zipHelp" class="form-text text-muted">Please input a New York City zipcode.</small>
+        <br><br><br><br>
+          <label for="exampleFormControlFile1">Upload Facebook Ads Data</label>
+          <input type="file" name = "fbFile", class="form-control-file" id="exampleFormControlFile1" aria-describedby="fileHelp" >
+          <small id="fileHelp" class="form-text text-muted">None of the uploaded data will be saved.</small>
+        </div>
+        <button type="submit" value="Post" class="btn btn-primary">Submit</button>
+      </form>
+
+      <br><br>
+
+      <body>
+        <h1>VIDEO</h1>
+        <img src="{{ url_for('video_feed') }}">
+      </body>
+
+
+    </div><!-- /.container -->
+
+  </body>
+
+</html>

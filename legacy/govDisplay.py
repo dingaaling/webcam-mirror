@@ -2,18 +2,11 @@ import cv2, os, json, random
 import numpy as np
 from ageGenderDetect import *
 
+faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 ## CONFIG
 page = 1
-zipcode = "10013"
-
-
-video_capture = cv2.VideoCapture(0)
-video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
-
-if video_capture.isOpened():
-    frame_width  = int(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))   # float
-    frame_height = int(video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float
+zipcode = "11201"
 
 face_counter = 0
 detected_gender_list, detected_age_list = [], []
@@ -92,6 +85,14 @@ def govTextStyling(final_output, page, age, gender, zipcode, incomeDisplay, comp
 complaintDisplay = get311Data(zipcode)
 incomeDisplay = getIncomeData(zipcode)
 voterStatus = getVoterData(zipcode)
+
+video_capture = cv2.VideoCapture(0)
+video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+
+if video_capture.isOpened():
+    frame_width  = int(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))   # float
+    frame_height = int(video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float
+
 
 while (video_capture.isOpened()):
 
