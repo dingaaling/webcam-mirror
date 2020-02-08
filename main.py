@@ -24,7 +24,8 @@ zipcode = "11201"
 
 if facebookDisplay:
     color = facebookStyling.colorSample()
-    fbData = facebookStyling.getFacebookData("facebook/facebook-jending/")
+    fbData = facebookStyling.getFacebookData("test")
+    # fbData = facebookStyling.getFacebookData("facebook/facebook-jending/")
     adInterestDisplay = facebookStyling.adSampleDisplay(fbData)
 
 @app.route("/")
@@ -56,8 +57,8 @@ def detect_face():
         faces = faceCascade.detectMultiScale(
             gray,
             scaleFactor=1.2,
-            minNeighbors=7,
-            minSize=(75, 75)
+            minNeighbors=5,
+            minSize=(50, 50)
         )
 
         # detect age, gender and peer group for each detected face

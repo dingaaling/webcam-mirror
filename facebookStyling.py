@@ -64,7 +64,8 @@ def getFacebookData(fbDir):
 
     # ADD PROPUBLICA DATA
     else:
-        adInterests = ["Test", "Test", "Test", "Test", "Test"]
+        f = readJson(dataPath + "fb_propublica.json")
+        adInterests = f["interests"]
 
     return adInterests
 
