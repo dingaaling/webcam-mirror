@@ -21,7 +21,7 @@ faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml'
 detected_gender_list, detected_age_list = [], []
 pointCountList = [0]
 facebookDisplay = False
-zipcode_list = []
+zipcode="11201"
 
 def newFacebookDisplay():
 
@@ -48,21 +48,18 @@ def detect_face():
 # loop over frames from the video stream
     while True:
 
+
         # read the next frame from the video stream, resize it,
         # convert the frame to grayscale, and blur it
         frame = vs.read()
-        # frame = imutils.resize(frame, width=1000)
+        frame = imutils.resize(frame, width=1000)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (7, 7), 0)
+
         if facebookDisplay:
             frame = facebookStyling.mainStyling(frame, color)
         else:
-            if len(zipcode_list)>1:
-                zipcode = zipcode_list[-1]
-            else:
-                zipcode = "11201"
-
-            frame = govStyling.mainStyling(frame, zipcode)
+            edge = govStyling.mainStyling(frame, zipcode)
 
         # detect face and plot rectangle
         faces = faceCascade.detectMultiScale(
@@ -78,10 +75,11 @@ def detect_face():
 
             face = frame[y:y+h, x:x+w]
 
-            if not facebookDisplay:
-                color = (0,0,0)
-            cv2.rectangle(frame, (x, y), (x+w, y+h), color, 5)
-            frame = facebookStyling.faceStyling(face, frame, x, y, w, h, color)
+            if facebookDisplay:
+                cv2.rectangle(frame, (x, y), (x+w, y+h), color, 5)
+                frame = facebookStyling.faceStyling(face, frame, x, y, w, h, color)
+            else:
+                edge = cv2.rectangle(edge, (x, y), (x+w, y+h), (255, 255, 255), 5)
 
             if len(detected_gender_list)<50:
 
@@ -95,14 +93,24 @@ def detect_face():
                 frame = facebookStyling.peerText(frame, peerGroupDisplay)
                 frame = facebookStyling.styleFacebookData(frame, adInterestDisplay, x, y, w, h, color)
             else:
-                frame = govStyling.mainTextStyling(frame, ageDisplay, genderDisplay)
-                frame = govStyling.taxStyling(frame, zipcode)
+                edge = govStyling.mainTextStyling(edge, ageDisplay, genderDisplay)
+                eddge = govStyling.taxStyling(edge, zipcode)
 
         # acquire the lock, set the output frame, and release the lock
         with lock:
-            outputFrame = frame.copy()
+            if facebookDisplay:
+                outputFrame = frame.copy()
+            else:
+                outputFrame = edge.copy()
 
-
+        # handPoints = handPose.detectHand(frame)
+        #
+        # print("Number of Points:", handPoints)
+        # if ((pointCountList[-1] - handPoints)>15):
+        #     print("Grab Detected")
+        #     if facebookDisplay:
+        #         color, adInterestDisplay = newFacebookDisplay()
+        # pointCountList.append(handPoints)
 
 def generate():
     # grab global references to the output frame and lock variables
@@ -130,9 +138,9 @@ def generate():
 
 @app.route("/form", methods=['POST'])
 def process_form():
-    user_zipcode = request.form['zipCode']
-    zipcode_list.append(user_zipcode)
-    return user_zipcode
+    zipcode = request.form['zipCode']
+    print(zipcode)
+    return zipcode
 
 @app.route("/video_feed")
 def video_feed():

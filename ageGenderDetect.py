@@ -8,11 +8,11 @@ ageList = ['(4 - 6)', '(8 - 12)', '(15 - 20)', '(25 - 32)', '(25 - 32)', '(38 - 
 peerGroupList = ['New to the World', 'Starting Adult Life', 'Established Adult Life']
 
 
-ageProto = "age_deploy.prototxt"
-ageModel = "age_net.caffemodel"
+ageProto = "models/age_deploy.prototxt"
+ageModel = "models/age_net.caffemodel"
 
-genderProto = "gender_deploy.prototxt"
-genderModel = "gender_net.caffemodel"
+genderProto = "models/gender_deploy.prototxt"
+genderModel = "models/gender_net.caffemodel"
 
 ageNet = cv2.dnn.readNet(ageModel, ageProto)
 genderNet = cv2.dnn.readNet(genderModel, genderProto)

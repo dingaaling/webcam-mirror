@@ -7,29 +7,29 @@ voterCountyDict = {'Bronx': 'Moderately Likely', 'Kings': 'Moderately Likely', '
 
 def mainStyling(frame, zipcode):
     frame_height, frame_width, _ = frame.shape
-    blur = cv2.GaussianBlur(frame,(7,7),0)
-    edge = cv2.Canny(blur, 50, 100)
-    cv2.rectangle(edge, (0, 0), (frame_width,50), (0,0,0), -1)
-    cv2.rectangle(edge, (0, frame_height-50), (frame_width,frame_height), (0,0,0), -1)
-    cv2.putText(edge, "I'm Taxed Therefore I Am", (int(frame_width/4), 40), cv2.FONT_HERSHEY_TRIPLEX, 1.5, (255, 255, 255),4, cv2.LINE_AA)
-    cv2.putText(edge, "Location: " + zipcode,(int(frame_width/2.5), 100), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255),4, cv2.LINE_AA)
+    # blur = cv2.GaussianBlur(frame,(7,7),0)
+    # edge = cv2.Canny(blur, 50, 100)
+    cv2.rectangle(frame, (0, 0), (frame_width,50), (0,0,0), -1)
+    cv2.rectangle(frame, (0, frame_height-50), (frame_width,frame_height), (0,0,0), -1)
+    cv2.putText(frame, "I'm Taxed Therefore I Am", (int(frame_width/4), 40), cv2.FONT_HERSHEY_TRIPLEX, 1.5, (255, 255, 255),4, cv2.LINE_AA)
+    cv2.putText(frame, "Location: " + zipcode,(int(frame_width/2.5), 100), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255),4, cv2.LINE_AA)
 
-    return edge
+    return frame
 
 def mainTextStyling(frame, age, gender):
-    frame_height, frame_width = frame.shape
+    frame_height, frame_width, _ = frame.shape
     cv2.putText(frame, "Gender Prediction: " + str(gender),(10, int(frame_height-20)), cv2.FONT_HERSHEY_TRIPLEX, 0.75, (255, 255, 255),2, cv2.LINE_AA)
     cv2.putText(frame, "Age Estimation: " + str(age),(int(0.67*frame_width), int(frame_height-20)),cv2.FONT_HERSHEY_TRIPLEX, 0.75,(255, 255, 255),2, cv2.LINE_AA)
     return frame
 
-def taxStyling(edge, zipcode):
-    frame_height, frame_width = edge.shape
+def taxStyling(frame, zipcode):
+    frame_height, frame_width, _ = frame.shape
     complaintDisplay = get311Data(zipcode)
     incomeDisplay = getIncomeData(zipcode)
-    cv2.putText(edge, "Expected Income Range: " + incomeDisplay,(int(frame_width/5), int(frame_height*0.75)), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255),4, cv2.LINE_AA)
-    cv2.putText(edge, "Most Likely 311 Complaint: " + complaintDisplay,(int(frame_width/5), int(frame_height*0.85)),cv2.FONT_HERSHEY_TRIPLEX, 1,(255, 255, 255),4, cv2.LINE_AA)
+    cv2.putText(frame, "Expected Income Range: " + incomeDisplay,(int(frame_width/5), int(frame_height*0.75)), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255),4, cv2.LINE_AA)
+    cv2.putText(frame, "Most Likely 311 Complaint: " + complaintDisplay,(int(frame_width/5), int(frame_height*0.85)),cv2.FONT_HERSHEY_TRIPLEX, 1,(255, 255, 255),4, cv2.LINE_AA)
 
-    return edge
+    return frame
 
 def readJson(filePath):
     with open(filePath) as json_file:
