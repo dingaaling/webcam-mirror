@@ -1,9 +1,13 @@
-import cv2, os, random, json
+import cv2, os, random, json, mechanize
 import numpy as np
+from bs4 import BeautifulSoup
+
 
 dataPath = os.path.abspath(os.getcwd()) + "/data/"
 zipcode_map = json.load(open(dataPath + "zipmap.json"))
 voterCountyDict = {'Bronx': 'Moderately Likely', 'Kings': 'Moderately Likely', 'New York': 'Unikely', 'Queens': 'Highly Likely', 'Richmond': 'Highly Likely'}
+countyBoroughDict = {'Bronx': 'Bronx', 'Kings': 'Brooklyn', 'New York': 'Manhattan', 'Queens': 'Queens', 'Richmond': 'Staten Island'}
+
 
 def mainStyling(frame, zipcode):
     frame_height, frame_width, _ = frame.shape
@@ -54,6 +58,57 @@ def getVoterData(zipcode):
         voterStatus = "Unlikely"
 
     return voterStatus
+
+def getBorough(zipcode):
+
+    if zipcode in zipcode_map:
+        county = zipcode_map[zipcode]['County Name']
+        borough = countyBoroughDict[county]
+    else:
+        borough = None
+
+    return borough
+
+def getVoterStatus(form_dict):
+
+
+    br = mechanize.Browser()
+    br.set_handle_robots(False)
+    br.addheaders = [('User-agent', 'Firefox')]
+    br.set_debug_http(True)
+    br.open('https://www.nycvotersearch.com/')
+    response = br.response()
+    br.form = list(br.forms())[0]
+
+    br["LastName"] = form_dict['lastName']
+    br["FirstName"] = form_dict['firstName']
+    br["ZipCode"] = form_dict['zipcode']
+    br["bMonth"] = form_dict['birthMonth']
+    br["bDay"] = form_dict['birthDay']
+    br["bYear"] = form_dict['birthYear']
+    br["County"] = [form_dict['borough']]
+
+    response = br.submit()
+    response_html = response.read()
+    soup = BeautifulSoup(response_html, 'lxml')
+    response_str = soup.text
+
+    if "Your search did not match any record on file" in response_str:
+        voterStatus = "Not Registered in NYC"
+    else:
+        response_str = response_str.replace("\n", " ")
+        response_str = response_str.replace("\r", " ")
+        response_str = response_str.replace("                    ", " ")
+        response_str = response_str.replace("     ", " ")
+
+        party_ind_start, stat_ind_start, stat_ind_end = response_str.find("Party:"), response_str.find("Status:"), response_str.find("VOTER DISTRICT INFORMATION")
+        party = response_str[party_ind_start+6:stat_ind_start]
+        activeStatus = response_str[stat_ind_start:stat_ind_end]
+
+        voterStatus = str(activeStatus) + str(party)
+
+    return voterStatus
+
 
 def getIncomeData(zipcode):
 

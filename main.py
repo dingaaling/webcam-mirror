@@ -21,13 +21,17 @@ faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml'
 detected_gender_list, detected_age_list = [], []
 pointCountList = [0]
 facebookDisplay = False
-zipcode_list = []
+form_dict = dict()
+form_dict['zipcode'] = '11201'
+form_dict['firstName'] = ''
+form_dict['lastName'] = ''
+
 
 def newFacebookDisplay():
 
     color = facebookStyling.colorSample()
     fbData = facebookStyling.getFacebookData("none")
-    # fbData = facebookStyling.getFacebookData("facebook/facebook-jending/")
+    fbData = facebookStyling.getFacebookData("facebook/facebook-pranavbadami/")
     adInterestDisplay = facebookStyling.adSampleDisplay(fbData)
 
     return color, adInterestDisplay
@@ -57,10 +61,11 @@ def detect_face():
         if facebookDisplay:
             frame = facebookStyling.mainStyling(frame, color)
         else:
-            if len(zipcode_list)>1:
-                zipcode = zipcode_list[-1]
-            else:
-                zipcode = "11201"
+            zipcode = form_dict['zipcode']
+            # if len(zipcode_list)>1:
+            #     zipcode = zipcode_list[-1]
+            # else:
+            #     zipcode = "11201"
 
             frame = govStyling.mainStyling(frame, zipcode)
 
@@ -131,7 +136,18 @@ def generate():
 @app.route("/form", methods=['POST'])
 def process_form():
     user_zipcode = request.form['zipCode']
-    zipcode_list.append(user_zipcode)
+
+    form_dict['zipcode'] = user_zipcode
+    form_dict['firstName'] = str(request.form['firstName'])
+    form_dict['lastName'] = str(request.form['lastName'])
+    form_dict['birthDay'] = str(request.form['birthDay'])
+    form_dict['birthMonth'] = str(request.form['birthMonth'])
+    form_dict['birthYear'] = str(request.form['birthYear'])
+    borough = govStyling.getBorough(user_zipcode)
+    form_dict['borough'] = str(borough)
+
+    print(govStyling.getVoterStatus(form_dict))
+
     return user_zipcode
 
 @app.route("/video_feed")

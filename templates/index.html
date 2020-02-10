@@ -22,18 +22,58 @@
 
       <br>
 
-      <form>
+      <!-- <form>
         <div class="form-group">
               <label for="inputZipcode">Zipcode</label>
               <input type="zipcode" name="inputZipcode" class="form-control" id="inputZipcode" placeholder="Ex. 11201", aria-describedby="zipHelp">
               <small id="zipHelp" class="form-text text-muted">Please input a New York City zipcode.</small>
-        <br><br><br><br>
-          <label for="exampleFormControlFile1">Upload Facebook Ads Data</label>
-          <input type="file" name = "fbFile", class="form-control-file" id="exampleFormControlFile1" aria-describedby="fileHelp" >
-          <small id="fileHelp" class="form-text text-muted">None of the uploaded data will be saved.</small>
         </div>
         <button id= "submitButton" type="submit" class="btn btn-primary">Submit</button>
+      </form> -->
+
+
+    <form>
+    <div class="form-row">
+      <div class="col-md-4 mb-3">
+        <label for="firstName">First name</label>
+        <input type="text" class="form-control" id="firstName" placeholder="Jane">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="lastName">Last name</label>
+        <input type="text" class="form-control" id="lastName" placeholder="Sanchez">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="inputZipcode">Zipcode</label>
+        <div class="input-group">
+          <input type="text" name="inputZipcode" class="form-control" id="inputZipcode" placeholder="Ex. 11201" aria-describedby="zipHelp" required>
+          <small id="zipHelp" class="form-text text-muted">Please input a New York City zipcode.</small>
+        </div>
+      </div>
+
+    </div>
+
+      <div class="form-row">
+
+        <div class="col-md-4 mb-3">
+          <label for="birthMonth">Birthday - Month</label>
+            <input type="text" name="birthMonth" class="form-control" id="birthMonth" placeholder="Ex. 12">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="birthDay">Birthday - Day</label>
+            <input type="text" name="birthDay" class="form-control" id="birthDay" placeholder="Ex. 31">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="birthYear">Birthday - Year</label>
+          <input type="text" class="form-control" id="birthYear" placeholder="Ex. 1989">
+        </div>
+
+      </div>
+      <br><br>
+    <button id= "submitButton" type="submit" class="btn btn-primary">Submit</button>
+
       </form>
+
+
 
       <br><br>
 
@@ -50,10 +90,24 @@
 
 $(document).ready(function() {
 
+
+
     $("#submitButton").click(function(){
       var inputZipcode = $('#inputZipcode').val();
-      console.log(inputZipcode)
-      var jqxhr = $.post( "/form", {"zipCode" : inputZipcode}, function(inputZipcode) {
+      var firstName = $('#firstName').val();
+      var lastName = $('#lastName').val();
+      var birthDay = $('#birthDay').val();
+      var birthMonth = $('#birthMonth').val();
+      var birthYear = $('#birthYear').val();
+      console.log(inputZipcode, firstName, lastName)
+      console.log(birthDay, birthMonth, birthYear)
+
+      var jqxhr = $.post( "/form",
+      {"zipCode" : inputZipcode, "firstName": firstName, "lastName": lastName,
+      "birthDay" : birthDay, "birthMonth": birthMonth, "birthYear": birthYear
+
+      },
+      function(data) {
       });
   })
 
