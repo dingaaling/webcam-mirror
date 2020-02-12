@@ -5,17 +5,18 @@ from bs4 import BeautifulSoup
 
 dataPath = os.path.abspath(os.getcwd()) + "/data/"
 zipcode_map = json.load(open(dataPath + "zipmap.json"))
-voterCountyDict = {'Bronx': 'Moderately Likely', 'Kings': 'Moderately Likely', 'New York': 'Unikely', 'Queens': 'Highly Likely', 'Richmond': 'Highly Likely'}
 countyBoroughDict = {'Bronx': 'Bronx', 'Kings': 'Brooklyn', 'New York': 'Manhattan', 'Queens': 'Queens', 'Richmond': 'Staten Island'}
+partyDict = {'DEM': 'Democrat', 'REP': 'Republican', 'CON': 'Conservative', 'WOR': 'Working Families', 'GRE': 'Green',
+            'LBT': 'Libertarian', 'IND': 'Independence', 'SAM': 'Serve America Movement', 'OTH': 'Other', 'BLK': 'No party affiliation'}
 
-
-def mainStyling(frame, zipcode):
+def mainStyling(frame, zipcode, taxStatus):
     frame_height, frame_width, _ = frame.shape
-    # blur = cv2.GaussianBlur(frame,(7,7),0)
-    # edge = cv2.Canny(blur, 50, 100)
     cv2.rectangle(frame, (0, 0), (frame_width,50), (0,0,0), -1)
     cv2.rectangle(frame, (0, frame_height-50), (frame_width,frame_height), (0,0,0), -1)
-    cv2.putText(frame, "I'm Taxed Therefore I Am", (int(frame_width/4), 40), cv2.FONT_HERSHEY_TRIPLEX, 1.5, (255, 255, 255),4, cv2.LINE_AA)
+    if taxStatus:
+        cv2.putText(frame, "I'm Taxed Therefore I Am", (int(frame_width/4), 40), cv2.FONT_HERSHEY_TRIPLEX, 1.5, (255, 255, 255),4, cv2.LINE_AA)
+    else:
+        cv2.putText(frame, "I Vote Therefore I Am", (int(frame_width/4), 40), cv2.FONT_HERSHEY_TRIPLEX, 1.5, (255, 255, 255),4, cv2.LINE_AA)
     cv2.putText(frame, "Location: " + zipcode,(int(frame_width/2.5), 100), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255),4, cv2.LINE_AA)
 
     return frame
@@ -35,6 +36,15 @@ def taxStyling(frame, zipcode):
 
     return frame
 
+def voteStyling(frame, voterStatus, zipcode):
+    frame_height, frame_width, _ = frame.shape
+    complaintDisplay = get311Data(zipcode)
+    incomeDisplay = getIncomeData(zipcode)
+    cv2.putText(frame, "Voter Status: " + voterStatus,(int(frame_width/5), int(frame_height*0.85)), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255),4, cv2.LINE_AA)
+
+
+    return frame
+
 def readJson(filePath):
     with open(filePath) as json_file:
         f = json.load(json_file)
@@ -49,15 +59,6 @@ def get311Data(zipcode):
         complaintDisplay = "Noise - Residential"
     return complaintDisplay
 
-def getVoterData(zipcode):
-
-    if zipcode in zipcode_map:
-        county = zipcode_map[zipcode]['County Name']
-        voterStatus = voterCountyDict[county]
-    else:
-        voterStatus = "Unlikely"
-
-    return voterStatus
 
 def getBorough(zipcode):
 
@@ -102,8 +103,12 @@ def getVoterStatus(form_dict):
         response_str = response_str.replace("     ", " ")
 
         party_ind_start, stat_ind_start, stat_ind_end = response_str.find("Party:"), response_str.find("Status:"), response_str.find("VOTER DISTRICT INFORMATION")
-        party = response_str[party_ind_start+6:stat_ind_start]
-        activeStatus = response_str[stat_ind_start:stat_ind_end]
+        party_acro = str(response_str[party_ind_start+6:stat_ind_start])
+        party_acro = str.strip(party_acro)
+        activeStatus = response_str[stat_ind_start+8:stat_ind_end]
+
+        if party_acro in partyDict:
+            party = partyDict[party_acro]
 
         voterStatus = str(activeStatus) + str(party)
 

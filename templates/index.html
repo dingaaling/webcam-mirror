@@ -20,17 +20,7 @@
               <h1>EXPLORE YOUR DATA IDENTITY</h1>
       </div>
 
-      <br>
-
-      <!-- <form>
-        <div class="form-group">
-              <label for="inputZipcode">Zipcode</label>
-              <input type="zipcode" name="inputZipcode" class="form-control" id="inputZipcode" placeholder="Ex. 11201", aria-describedby="zipHelp">
-              <small id="zipHelp" class="form-text text-muted">Please input a New York City zipcode.</small>
-        </div>
-        <button id= "submitButton" type="submit" class="btn btn-primary">Submit</button>
-      </form> -->
-
+    <br>
 
     <form>
     <div class="form-row">
@@ -57,33 +47,42 @@
         <div class="col-md-4 mb-3">
           <label for="birthMonth">Birthday - Month</label>
             <input type="text" name="birthMonth" class="form-control" id="birthMonth" placeholder="Ex. 12">
+
         </div>
         <div class="col-md-4 mb-3">
           <label for="birthDay">Birthday - Day</label>
             <input type="text" name="birthDay" class="form-control" id="birthDay" placeholder="Ex. 31">
         </div>
+
         <div class="col-md-4 mb-3">
           <label for="birthYear">Birthday - Year</label>
           <input type="text" class="form-control" id="birthYear" placeholder="Ex. 1989">
         </div>
 
+
       </div>
-      <br><br>
-    <button id= "submitButton" type="submit" class="btn btn-primary">Submit</button>
+
+      <div class="form-group">
+        <div class="col-md-4 mb-3">
+          <button id= "submitButton" type="submit" class="btn btn-primary">Submit</button>
+          <!-- <button id= "submitButton" type="submit" class="btn btn-primary" onClick="document.getElementById('middle').scrollIntoView();">Submit</button> -->
+        </div>
+      </div>
 
       </form>
 
+      </div>
 
+      <br>
+
+
+        <div class="container">
+        <!-- <h1 id="middle">VIDEO</h1> -->
+        <img src="{{ url_for('video_feed') }}">
+      </div>
 
       <br><br>
 
-      <body>
-        <h1>VIDEO</h1>
-        <img src="{{ url_for('video_feed') }}">
-      </body>
-
-
-    </div><!-- /.container -->
 
   </body>
 <script>
@@ -93,22 +92,22 @@ $(document).ready(function() {
 
 
     $("#submitButton").click(function(){
+
       var inputZipcode = $('#inputZipcode').val();
       var firstName = $('#firstName').val();
       var lastName = $('#lastName').val();
       var birthDay = $('#birthDay').val();
       var birthMonth = $('#birthMonth').val();
       var birthYear = $('#birthYear').val();
-      console.log(inputZipcode, firstName, lastName)
-      console.log(birthDay, birthMonth, birthYear)
 
       var jqxhr = $.post( "/form",
       {"zipCode" : inputZipcode, "firstName": firstName, "lastName": lastName,
       "birthDay" : birthDay, "birthMonth": birthMonth, "birthYear": birthYear
-
       },
-      function(data) {
+
+      function() {
       });
+
   })
 
 });

@@ -1,7 +1,7 @@
 import cv2, sys, os, json, random
 import numpy as np
 
-faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
 
 video_capture = cv2.VideoCapture(0)
 padding = 20
@@ -13,11 +13,11 @@ genderList = ['Male', 'Female']
 ageList = ['(5 - 10)', '(11 - 15)', '(16 - 24)', '(25 - 32)', '(25 - 32)', '(38 - 43)', '(48 - 53)', '(60 - 100)']
 peerGroupList = ['New to the World', 'New to the World', 'Starting Adult Life', 'Starting Adult Life', 'Starting Adult Life', 'Established Adult Life', 'Established Adult Life', 'Established Adult Life']
 
-ageProto = "age_deploy.prototxt"
-ageModel = "age_net.caffemodel"
+ageProto = "models/age_deploy.prototxt"
+ageModel = "models/age_net.caffemodel"
 
-genderProto = "gender_deploy.prototxt"
-genderModel = "gender_net.caffemodel"
+genderProto = "models/gender_deploy.prototxt"
+genderModel = "models/gender_net.caffemodel"
 
 fb_dict = dict()
 fb_dict["ads_and_businesses"] = ["ads_interests.json"]
@@ -41,9 +41,11 @@ def getFacebookData():
 
     peerGroup, adInterests, adInteracts = [], [], []
 
-    for dir_name in os.listdir(data_path):
-        if dir_name.startswith("facebook-j"):
-            fbPath = data_path + dir_name + "/"
+    fbPath = data_path + "facebook/facebook-jending/"
+
+    # for dir_name in os.listdir(data_path):
+    #     if dir_name.startswith("facebook/facebook-j"):
+    #         fbPath = data_path + dir_name + "/"
 
     for folder in os.listdir(fbPath):
         if folder in fb_dict.keys():
@@ -71,7 +73,7 @@ def get311Data(zipcode):
     return complaintDisplay
 
 
-showEdge = 1
+showEdge = 0
 zipcode = "10460"
 adInterestDisplay, numAdInterests  = getFacebookData()
 complaintDisplay = get311Data(zipcode)

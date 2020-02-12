@@ -1,6 +1,6 @@
 from imutils.video import VideoStream
 from flask import Response, Flask, render_template, request
-import threading, argparse, datetime, imutils, cv2, time, os, jsonify
+import threading, argparse, imutils, cv2, time
 from ageGenderDetect import *
 import facebookStyling
 import govStyling
@@ -20,34 +20,50 @@ time.sleep(2.0)
 faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
 detected_gender_list, detected_age_list = [], []
 pointCountList = [0]
+frameCount = 0
 facebookDisplay = False
+taxStatus = False
 form_dict = dict()
 form_dict['zipcode'] = '11201'
-form_dict['firstName'] = ''
-form_dict['lastName'] = ''
+form_dict['voterStatus'] = ''
 
+
+def saveImage(frame, facebookDisplay):
+
+    hash = facebookStyling.randomHash()
+    if facebookDisplay:
+        img_name = "facebook-" + hash + ".png"
+    else:
+        img_name = "gov-" + hash + ".png"
+    print(img_name)
+    cv2.imwrite(img_name, frame)
 
 def newFacebookDisplay():
 
     color = facebookStyling.colorSample()
-    fbData = facebookStyling.getFacebookData("none")
-    fbData = facebookStyling.getFacebookData("facebook/facebook-pranavbadami/")
-    adInterestDisplay = facebookStyling.adSampleDisplay(fbData)
+    # fbAds, fbAdvertisers = facebookStyling.getFacebookData("none")
+    fbAds, fbAdvertisers = facebookStyling.getFacebookData("facebook/facebook-jending/")
+    adInterestDisplay, advertiserDisplay = facebookStyling.adSampleDisplay(fbAds, fbAdvertisers)
 
-    return color, adInterestDisplay
+    return color, adInterestDisplay, advertiserDisplay
 
 if facebookDisplay:
-    color, adInterestDisplay = newFacebookDisplay()
+    color, adInterestDisplay, advertiserDisplay = newFacebookDisplay()
 
 @app.route("/")
 def index():
 
     return render_template("index.html")
 
+@app.route("/video")
+def video():
+    print('video called')
+    return render_template("video.html")
+
 
 def detect_face():
     # grab global references to the video stream, output frame, and lock variables
-    global vs, outputFrame, lock, color, facebookDisplay, adInterestDisplay
+    global vs, outputFrame, lock, color, facebookDisplay, adInterestDisplay, advertiserDisplay, frameCount
 
 # loop over frames from the video stream
     while True:
@@ -55,26 +71,20 @@ def detect_face():
         # read the next frame from the video stream, resize it,
         # convert the frame to grayscale, and blur it
         frame = vs.read()
-        # frame = imutils.resize(frame, width=1000)
+        frame = imutils.resize(frame, width=1150)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (7, 7), 0)
         if facebookDisplay:
             frame = facebookStyling.mainStyling(frame, color)
         else:
-            zipcode = form_dict['zipcode']
-            # if len(zipcode_list)>1:
-            #     zipcode = zipcode_list[-1]
-            # else:
-            #     zipcode = "11201"
-
-            frame = govStyling.mainStyling(frame, zipcode)
+            frame = govStyling.mainStyling(frame, form_dict['zipcode'], taxStatus)
 
         # detect face and plot rectangle
         faces = faceCascade.detectMultiScale(
             gray,
             scaleFactor=1.2,
             minNeighbors=5,
-            minSize=(50, 50)
+            minSize=(100, 100)
         )
 
 
@@ -101,7 +111,15 @@ def detect_face():
                 frame = facebookStyling.styleFacebookData(frame, adInterestDisplay, x, y, w, h, color)
             else:
                 frame = govStyling.mainTextStyling(frame, ageDisplay, genderDisplay)
-                frame = govStyling.taxStyling(frame, zipcode)
+                if taxStatus:
+                    frame = govStyling.taxStyling(frame, form_dict['zipcode'])
+                else:
+                    frame = govStyling.voteStyling(frame, form_dict['voterStatus'], form_dict['zipcode'])
+
+        frameCount+=1
+        if frameCount > 1000:
+            saveImage(frame, facebookDisplay)
+            break
 
         # acquire the lock, set the output frame, and release the lock
         with lock:
@@ -135,6 +153,7 @@ def generate():
 
 @app.route("/form", methods=['POST'])
 def process_form():
+
     user_zipcode = request.form['zipCode']
 
     form_dict['zipcode'] = user_zipcode
@@ -146,9 +165,9 @@ def process_form():
     borough = govStyling.getBorough(user_zipcode)
     form_dict['borough'] = str(borough)
 
-    print(govStyling.getVoterStatus(form_dict))
+    form_dict['voterStatus'] = govStyling.getVoterStatus(form_dict)
+    print(form_dict['voterStatus'])
 
-    return user_zipcode
 
 @app.route("/video_feed")
 def video_feed():
@@ -169,7 +188,7 @@ if __name__ == '__main__':
 
     args = vars(ap.parse_args())
 
-    # start a thread that will perform motion detection
+    # start a thread that will perform face detection
     t = threading.Thread(target=detect_face)
     t.daemon = True
     t.start()
@@ -177,6 +196,7 @@ if __name__ == '__main__':
     # start the flask app
     app.run(host=args["ip"], port=args["port"], debug=True,
             threaded=True, use_reloader=False)
+
 
 # release the video stream pointer
 vs.stop()
