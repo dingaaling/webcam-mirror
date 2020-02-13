@@ -110,7 +110,7 @@ def getVoterStatus(form_dict):
         if party_acro in partyDict:
             party = partyDict[party_acro]
 
-        voterStatus = str(activeStatus) + str(party)
+        voterStatus = str(activeStatus) + "   " + str(party)
 
     return voterStatus
 
