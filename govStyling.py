@@ -31,8 +31,8 @@ def taxStyling(frame, zipcode):
     frame_height, frame_width, _ = frame.shape
     complaintDisplay = get311Data(zipcode)
     incomeDisplay = getIncomeData(zipcode)
-    cv2.putText(frame, "Expected Income Range: " + incomeDisplay,(int(frame_width/5), int(frame_height*0.75)), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255),4, cv2.LINE_AA)
-    cv2.putText(frame, "Most Likely 311 Complaint: " + complaintDisplay,(int(frame_width/5), int(frame_height*0.85)),cv2.FONT_HERSHEY_TRIPLEX, 1,(255, 255, 255),4, cv2.LINE_AA)
+    cv2.putText(frame, "Expected Income Range: " + incomeDisplay,(int(frame_width/6), int(frame_height*0.75)), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255),4, cv2.LINE_AA)
+    cv2.putText(frame, "Most Likely 311 Complaint: " + complaintDisplay,(int(frame_width/6), int(frame_height*0.85)),cv2.FONT_HERSHEY_TRIPLEX, 1,(255, 255, 255),4, cv2.LINE_AA)
 
     return frame
 
@@ -40,7 +40,7 @@ def voteStyling(frame, voterStatus, zipcode):
     frame_height, frame_width, _ = frame.shape
     complaintDisplay = get311Data(zipcode)
     incomeDisplay = getIncomeData(zipcode)
-    cv2.putText(frame, "Voter Status: " + voterStatus,(int(frame_width/5), int(frame_height*0.85)), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255),4, cv2.LINE_AA)
+    cv2.putText(frame, "Voter Status: " + voterStatus,(int(frame_width/6), int(frame_height*0.85)), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255),4, cv2.LINE_AA)
 
 
     return frame

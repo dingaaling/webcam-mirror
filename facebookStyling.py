@@ -39,7 +39,7 @@ def faceStyling(face, frame, x, y, w, h, color):
 
     # Detect Corners
     grayscale_face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
-    corners = cv2.goodFeaturesToTrack(grayscale_face, 200, 0.01, 10)
+    corners = cv2.goodFeaturesToTrack(grayscale_face, 150, 0.01, 10)
     corners = np.int0(corners)
 
     for corner in corners:
