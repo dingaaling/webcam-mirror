@@ -1,6 +1,6 @@
 from imutils.video import VideoStream
 from flask import Response, Flask, render_template, request
-import threading, argparse, imutils, cv2, time
+import threading, argparse, imutils, cv2, time, os
 from ageGenderDetect import *
 import facebookStyling
 import govStyling
@@ -13,6 +13,7 @@ lock = threading.Lock()
 
 # initialize a flask object
 app = Flask(__name__)
+
 
 # initialize the video stream and allow the camera sensor to warmup
 vs = VideoStream(src=0).start()
