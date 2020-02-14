@@ -1,10 +1,11 @@
-from imutils.video import VideoStream
-from flask import Response, Flask, render_template, request, flash, redirect, url_for
+from flask import Response, Flask, render_template, request, flash, redirect, send_from_directory, url_for
 from werkzeug.utils import secure_filename
 import threading, argparse, imutils, cv2, time, os
+from zipfile import ZipFile
+from imutils.video import VideoStream
 from ageGenderDetect import *
-import facebookStyling
 import govStyling
+
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful for multiple browsers/tabs
@@ -12,9 +13,9 @@ import govStyling
 outputFrame = None
 lock = threading.Lock()
 
+
 # initialize a flask object
 app = Flask(__name__)
-
 
 # initialize the video stream and allow the camera sensor to warmup
 vs = VideoStream(src=0).start()
@@ -29,38 +30,17 @@ form_dict = dict()
 form_dict['zipcode'] = '11201'
 form_dict['voterStatus'] = ''
 
-fb_dict = dict()
+def saveImage(frame):
 
-
-def saveImage(frame, facebookDisplay):
-
-    hash = facebookStyling.randomHash()
-    if facebookDisplay:
-        img_name = "portraits/facebook-" + hash + ".png"
-    else:
-        img_name = "portraits/gov-" + hash + ".png"
+    hash = govStyling.randomHash()
+    img_name = "portraits/gov-" + hash + ".png"
     print(img_name)
     cv2.imwrite(img_name, frame)
 
 
-def newFacebookDisplay():
-
-    color = facebookStyling.colorSample()
-    # fbAds, fbAdvertisers = facebookStyling.getFacebookData("none")
-    fbAds, fbAdvertisers = facebookStyling.getFacebookData("facebook/facebook-jending/")
-    adInterestDisplay, advertiserDisplay = facebookStyling.adSampleDisplay(fbAds, fbAdvertisers)
-
-    return color, adInterestDisplay, advertiserDisplay
-
-
-@app.route("/")
-def index():
-
-    return render_template("index.html")
-
 def detect_face():
     # grab global references to the video stream, output frame, and lock variables
-    global vs, outputFrame, lock, facebookDisplay, frameCount
+    global vs, outputFrame, lock, frameCount
 
 # loop over frames from the video stream
     while True:
@@ -72,11 +52,7 @@ def detect_face():
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (7, 7), 0)
 
-        if facebookDisplay:
-            frame = facebookStyling.mainStyling(frame, fb_dict['color'])
-        else:
-            frame = govStyling.mainStyling(frame, form_dict['zipcode'], form_dict['taxStatus'])
-
+        frame = govStyling.mainStyling(frame, form_dict['zipcode'], form_dict['taxStatus'])
         # detect face and plot rectangle
         faces = faceCascade.detectMultiScale(
             gray,
@@ -90,10 +66,8 @@ def detect_face():
 
             face = frame[y:y+h, x:x+w]
 
-            if not facebookDisplay:
-                fb_dict['color'] = (0,0,0)
-            cv2.rectangle(frame, (x, y), (x+w, y+h), fb_dict['color'], 5)
-            frame = facebookStyling.faceStyling(face, frame, x, y, w, h, fb_dict['color'])
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0,0,0), 5)
+            frame = govStyling.faceStyling(face, frame, x, y, w, h, (0,0,0))
 
             if len(detected_gender_list)<50:
 
@@ -102,26 +76,20 @@ def detect_face():
                 detected_age_list.append(age)
 
             genderDisplay, ageDisplay, peerGroupDisplay = ageGenderDisplay(detected_gender_list, detected_age_list)
-
-            if facebookDisplay:
-                frame = facebookStyling.peerText(frame, peerGroupDisplay)
-                frame = facebookStyling.styleFacebookData(frame, fb_dict['ads'], x, y, w, h, fb_dict['color'])
+            frame = govStyling.mainTextStyling(frame, ageDisplay, genderDisplay)
+            if form_dict['taxStatus']:
+                frame = govStyling.taxStyling(frame, form_dict['zipcode'])
             else:
-                frame = govStyling.mainTextStyling(frame, ageDisplay, genderDisplay)
-                if form_dict['taxStatus']:
-                    frame = govStyling.taxStyling(frame, form_dict['zipcode'])
-                else:
-                    frame = govStyling.voteStyling(frame, form_dict['voterStatus'], form_dict['zipcode'])
+                frame = govStyling.voteStyling(frame, form_dict['voterStatus'], form_dict['zipcode'])
 
         frameCount+=1
         if frameCount > 1000:
-            saveImage(frame, facebookDisplay)
+            saveImage(frame)
             break
 
         # acquire the lock, set the output frame, and release the lock
         with lock:
             outputFrame = frame.copy()
-
 
 def generate():
     # grab global references to the output frame and lock variables
@@ -148,39 +116,6 @@ def generate():
               bytearray(encodedImage) + b'\r\n')
 
 
-@app.route("/form", methods=['POST'])
-def process_form():
-
-    user_zipcode = request.form['zipCode']
-
-    form_dict['zipcode'] = user_zipcode
-    form_dict['firstName'] = str(request.form['firstName'])
-    form_dict['lastName'] = str(request.form['lastName'])
-    form_dict['birthDay'] = str(request.form['birthDay'])
-    form_dict['birthMonth'] = str(request.form['birthMonth'])
-    form_dict['birthYear'] = str(request.form['birthYear'])
-    borough = govStyling.getBorough(user_zipcode)
-    form_dict['borough'] = str(borough)
-
-    form_dict['voterStatus'] = govStyling.getVoterStatus(form_dict)
-
-    return user_zipcode
-
-
-@app.route("/sample", methods=['POST'])
-def sample_data():
-
-    action = request.form['action']
-    if facebookDisplay:
-        color, adInterestDisplay, advertiserDisplay = newFacebookDisplay()
-        fb_dict['color'] = color
-        fb_dict['ads'] = adInterestDisplay
-    else:
-        form_dict['taxStatus'] = not form_dict['taxStatus']
-
-    return action
-
-
 @app.route("/video_feed")
 def video_feed():
     # return the response generated along with the specific media
@@ -188,9 +123,31 @@ def video_feed():
     return Response(generate(),
                     mimetype="multipart/x-mixed-replace; boundary=frame")
 
+@app.route('/video')
+def video():
+    return render_template("video.html")
 
-# check to see if this is the main thread of execution
-if __name__ == '__main__':
+
+@app.route('/', methods=['GET', 'POST'])
+def process_form():
+
+    if request.method == 'POST':
+
+        form_dict['zipcode'] = request.form['zipCode']
+        form_dict['firstName'] = str(request.form['firstName'])
+        form_dict['lastName'] = str(request.form['lastName'])
+        form_dict['birthDay'] = str(request.form['birthDay'])
+        form_dict['birthMonth'] = str(request.form['birthMonth'])
+        form_dict['birthYear'] = str(request.form['birthYear'])
+        borough = govStyling.getBorough(form_dict['zipcode'])
+        form_dict['borough'] = str(borough)
+        form_dict['voterStatus'] = govStyling.getVoterStatus(form_dict)
+        return redirect(url_for('video'))
+
+
+    return render_template("index_gov.html")
+
+if __name__ == "__main__":
     # construct the argument parser and parse command line arguments
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--ip", type=str, required=True,
@@ -199,16 +156,7 @@ if __name__ == '__main__':
                     help="ephemeral port number of the server (1024 to 65535)")
 
     args = vars(ap.parse_args())
-
-    if args["port"] == 8080:
-        facebookDisplay = True
-        color, adInterestDisplay, advertiserDisplay = newFacebookDisplay()
-        fb_dict['color'] = color
-        fb_dict['ads'] = adInterestDisplay
-
-    else:
-        facebookDisplay = False
-        form_dict['taxStatus'] = False
+    form_dict['taxStatus'] = False
 
     # start a thread that will perform face detection
     t = threading.Thread(target=detect_face)

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+      <link href="https://fonts.googleapis.com/css?family=Fredoka+One|PT+Mono|Tomorrow&display=swap" rel="stylesheet">
+      <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='styles/main.css') }}" />
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+      <title>I AM THEREFORE I AM</title>
+
+  </head>
+
+  <body>
+
+    <div class="container">
+
+      <div class="row">
+              <h1>EXPLORE YOUR DATA IDENTITY</h1>
+      </div>
+
+    <br>
+
+
+    <form>
+    <div class="form-row">
+      <div class="col-md-4 mb-3">
+        <label for="firstName">First name</label>
+        <input type="text" class="form-control" id="firstName" placeholder="Jane">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="lastName">Last name</label>
+        <input type="text" class="form-control" id="lastName" placeholder="Sanchez">
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="inputZipcode">Zipcode</label>
+        <div class="input-group">
+          <input type="text" name="inputZipcode" class="form-control" id="inputZipcode" placeholder="Ex. 11201" aria-describedby="zipHelp" required>
+          <small id="zipHelp" class="form-text text-muted">Please input a New York City zipcode.</small>
+        </div>
+      </div>
+
+    </div>
+
+      <div class="form-row">
+
+        <div class="col-md-4 mb-3">
+          <label for="birthMonth">Birthday - Month</label>
+            <input type="text" name="birthMonth" class="form-control" id="birthMonth" placeholder="Ex. 12">
+
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="birthDay">Birthday - Day</label>
+            <input type="text" name="birthDay" class="form-control" id="birthDay" placeholder="Ex. 31">
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label for="birthYear">Birthday - Year</label>
+          <input type="text" class="form-control" id="birthYear" placeholder="Ex. 1989">
+        </div>
+
+      </div>
+
+      </form>
+
+      </div>
+
+      <br>
+
+      <div class="container">
+
+        <div class="col-md-10 mb-3">
+          <button id= "submitButton" type="submit" class="btn btn-primary">SUBMIT</button>
+        </div>
+      </div>
+
+      <br><br>
+
+
+  </body>
+<script>
+
+$(document).ready(function() {
+
+
+    $("#submitButton").click(function(){
+
+      var inputZipcode = $('#inputZipcode').val();
+      var firstName = $('#firstName').val();
+      var lastName = $('#lastName').val();
+      var birthDay = $('#birthDay').val();
+      var birthMonth = $('#birthMonth').val();
+      var birthYear = $('#birthYear').val();
+
+      var jqxhr = $.post( "/",
+      {"zipCode" : inputZipcode, "firstName": firstName, "lastName": lastName,
+      "birthDay" : birthDay, "birthMonth": birthMonth, "birthYear": birthYear
+      },
+
+      function() {
+      });
+
+  })
+
+
+});
+</script>
+</html>
