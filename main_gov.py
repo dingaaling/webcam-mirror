@@ -1,6 +1,6 @@
-from flask import Response, Flask, render_template, request, flash, redirect, send_from_directory, url_for
+from flask import Response, Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
-import threading, argparse, imutils, cv2, time, os
+import threading, argparse, imutils, cv2, time, os, json
 from zipfile import ZipFile
 from imutils.video import VideoStream
 from ageGenderDetect import *
@@ -123,29 +123,29 @@ def video_feed():
     return Response(generate(),
                     mimetype="multipart/x-mixed-replace; boundary=frame")
 
-@app.route('/video')
+@app.route('/video', methods=['GET'])
 def video():
+
+    print("entered function")
     return render_template("video.html")
 
-
-@app.route('/', methods=['GET', 'POST'])
-def process_form():
-
-    if request.method == 'POST':
-
-        form_dict['zipcode'] = request.form['zipCode']
-        form_dict['firstName'] = str(request.form['firstName'])
-        form_dict['lastName'] = str(request.form['lastName'])
-        form_dict['birthDay'] = str(request.form['birthDay'])
-        form_dict['birthMonth'] = str(request.form['birthMonth'])
-        form_dict['birthYear'] = str(request.form['birthYear'])
-        borough = govStyling.getBorough(form_dict['zipcode'])
-        form_dict['borough'] = str(borough)
-        form_dict['voterStatus'] = govStyling.getVoterStatus(form_dict)
-        return redirect(url_for('video'))
-
-
+@app.route('/', methods=['GET'])
+def index():
     return render_template("index_gov.html")
+
+@app.route('/', methods=['POST'])
+def process_form():
+    form_dict['zipcode'] = request.form['zipCode']
+    form_dict['firstName'] = str(request.form['firstName'])
+    form_dict['lastName'] = str(request.form['lastName'])
+    form_dict['birthDay'] = str(request.form['birthDay'])
+    form_dict['birthMonth'] = str(request.form['birthMonth'])
+    form_dict['birthYear'] = str(request.form['birthYear'])
+    borough = govStyling.getBorough(form_dict['zipcode'])
+    form_dict['borough'] = str(borough)
+    form_dict['voterStatus'] = govStyling.getVoterStatus(form_dict)
+    print(form_dict)
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 if __name__ == "__main__":
     # construct the argument parser and parse command line arguments
