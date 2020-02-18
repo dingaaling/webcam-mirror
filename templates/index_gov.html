@@ -95,15 +95,14 @@ $(document).ready(function() {
       var birthMonth = $('#birthMonth').val();
       var birthYear = $('#birthYear').val();
 
-      console.log(inputZipcode, firstName)
-
       var jqxhr = $.post( "/",
       {"zipCode" : inputZipcode, "firstName": firstName, "lastName": lastName,
       "birthDay" : birthDay, "birthMonth": birthMonth, "birthYear": birthYear
       },
 
+      // Runs when POST request is completed
       function() {
-        //TODO MAKE SURE THE RESPONSE IS SUCCESSFUL
+        //MAKE SURE THE RESPONSE IS SUCCESSFUL
         console.log("Success")
         //There is a js function to get current host
         window.location.replace("http://0.0.0.0:8080/video");

@@ -17,10 +17,6 @@ lock = threading.Lock()
 # initialize a flask object
 app = Flask(__name__)
 
-# initialize the video stream and allow the camera sensor to warmup
-vs = VideoStream(src=0).start()
-time.sleep(2.0)
-
 faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
 
 detected_gender_list, detected_age_list = [], []
@@ -115,18 +111,29 @@ def generate():
         yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
               bytearray(encodedImage) + b'\r\n')
 
+@app.route("/sample", methods=['POST'])
+def sample_data():
+
+    action = request.form['action']
+    form_dict['taxStatus'] = not form_dict['taxStatus']
+
 
 @app.route("/video_feed")
 def video_feed():
     # return the response generated along with the specific media
     # type (mime type)
+
+    # start a thread that will perform face detection
+    t = threading.Thread(target=detect_face)
+    t.daemon = True
+    t.start()
+
     return Response(generate(),
                     mimetype="multipart/x-mixed-replace; boundary=frame")
 
 @app.route('/video', methods=['GET'])
 def video():
 
-    print("entered function")
     return render_template("video.html")
 
 @app.route('/', methods=['GET'])
@@ -155,13 +162,13 @@ if __name__ == "__main__":
     ap.add_argument("-o", "--port", type=int, required=True,
                     help="ephemeral port number of the server (1024 to 65535)")
 
+
     args = vars(ap.parse_args())
     form_dict['taxStatus'] = False
 
-    # start a thread that will perform face detection
-    t = threading.Thread(target=detect_face)
-    t.daemon = True
-    t.start()
+    # initialize the video stream and allow the camera sensor to warmup
+    vs = VideoStream(src=0).start()
+    time.sleep(2.0)
 
     # start the flask app
     app.run(host=args["ip"], port=args["port"], debug=True,

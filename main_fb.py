@@ -20,10 +20,6 @@ ALLOWED_EXTENSIONS = {'zip', 'none'}
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# initialize the video stream and allow the camera sensor to warmup
-vs = VideoStream(src=0).start()
-time.sleep(2.0)
-
 faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
 
 detected_gender_list, detected_age_list = [], []
@@ -136,6 +132,12 @@ def sample_data():
 def video_feed():
     # return the response generated along with the specific media
     # type (mime type)
+
+    # start a thread that will perform face detection
+    t = threading.Thread(target=detect_face)
+    t.daemon = True
+    t.start()
+
     return Response(generate(),
                     mimetype="multipart/x-mixed-replace; boundary=frame")
 
@@ -192,10 +194,10 @@ if __name__ == "__main__":
     fb_dict['color'] = color
     fb_dict['ads'] = adInterestDisplay
 
-    # start a thread that will perform face detection
-    t = threading.Thread(target=detect_face)
-    t.daemon = True
-    t.start()
+    # initialize the video stream and allow the camera sensor to warmup
+    vs = VideoStream(src=0).start()
+    time.sleep(2.0)
+
 
     # start the flask app
     app.run(host=args["ip"], port=args["port"], debug=True,
