@@ -5,7 +5,6 @@ import numpy as np
 color_list = [(242, 161, 29), (0, 153, 255), (242, 119, 24), (152, 89, 59),(163, 42, 195), (215, 95, 76), (189, 50, 114), (28, 8, 189), (240, 175, 0), (75, 21, 74), (96, 215, 30), (0, 0, 255)]
 dataPath = os.path.abspath(os.getcwd()) + "/data/"
 
-
 def randomHash():
     hash = random.getrandbits(128)
     return str(hash)
@@ -14,10 +13,9 @@ def colorSample():
     color = random.sample(color_list, 1)[0]
     return color
 
-def adSampleDisplay(adList, advertiserList):
+def adSampleDisplay(adList):
     adInterestDisplay = random.sample(adList, 3)
-    advertiserDisplay = random.sample(advertiserList, 3)
-    return adInterestDisplay, advertiserDisplay
+    return adInterestDisplay
 
 def mainStyling(frame, color):
     frame_height, frame_width, _ = frame.shape
@@ -60,24 +58,20 @@ def readJson(filePath):
         f = json.load(json_file)
     return f
 
-def getFacebookData(fbDir):
+def getFacebookData(fbfilePath):
 
-    adInterests, advertisers = [], []
-    fbPath = dataPath + fbDir
+    adInterests =  []
+    fbPath = fbfilePath
     if os.path.exists(fbPath):
         f = readJson(fbPath + "/ads_and_businesses/ads_interests.json")
         adInterests = f["topics"]
-
-        f2 = readJson(fbPath + "/ads_and_businesses/advertisers_who_uploaded_a_contact_list_with_your_information.json")
-        advertisers = f2["custom_audiences"]
-
 
     # ADD PROPUBLICA DATA
     else:
         f = readJson(dataPath + "fb_propublica.json")
         adInterests = f["interests"]
 
-    return adInterests, advertisers
+    return adInterests
 
 def styleFacebookData(frame, adInterestDisplay, x, y, w, h, color):
 
