@@ -1,6 +1,6 @@
 from flask import Response, Flask, render_template, request, flash, redirect, send_from_directory, url_for
 from werkzeug.utils import secure_filename
-import threading, argparse, imutils, cv2, time, os
+import threading, argparse, imutils, cv2, time, os, json
 from zipfile import ZipFile
 from imutils.video import VideoStream
 from ageGenderDetect import *
@@ -27,13 +27,6 @@ frameCount = 0
 
 fb_dict = dict()
 
-def saveImage(frame):
-
-    hash = facebookStyling.randomHash()
-    img_name = "portraits/facebook-" + hash + ".png"
-    print(img_name)
-    cv2.imwrite(img_name, frame)
-
 
 def newFacebookDisplay(fbfilePath):
 
@@ -46,7 +39,7 @@ def newFacebookDisplay(fbfilePath):
 
 def detect_face():
     # grab global references to the video stream, output frame, and lock variables
-    global vs, outputFrame, lock, frameCount
+    global vs, outputFrame, lock, frameCount, frame
 
 # loop over frames from the video stream
     while True:
@@ -87,7 +80,6 @@ def detect_face():
 
         frameCount+=1
         if frameCount > 1000:
-            saveImage(frame)
             break
 
         # acquire the lock, set the output frame, and release the lock
@@ -127,6 +119,16 @@ def sample_data():
     fb_dict['ads'] = adInterestDisplay
 
     return action
+
+@app.route("/save", methods=['POST'])
+def saveImage():
+
+    hash = facebookStyling.randomHash()
+    img_name = "portraits/facebook-" + hash + ".png"
+    cv2.imwrite(img_name, outputFrame)
+    print(img_name)
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
 
 @app.route("/video_feed")
 def video_feed():

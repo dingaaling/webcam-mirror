@@ -36,8 +36,8 @@
         <input type="text" class="form-control" id="lastName" placeholder="Sanchez">
       </div>
       <div class="col-md-4 mb-3">
-        <label for="inputZipcode">Zipcode</label>
-        <div class="input-group">
+        <div class="form-group required">
+          <label class="control-label" for="inputZipcode">Zipcode</label>
           <input type="text" name="inputZipcode" class="form-control" id="inputZipcode" placeholder="Ex. 11201" aria-describedby="zipHelp" required>
           <small id="zipHelp" class="form-text text-muted">Please input a New York City zipcode.</small>
         </div>
@@ -104,7 +104,7 @@ $(document).ready(function() {
       function() {
         //MAKE SURE THE RESPONSE IS SUCCESSFUL
         console.log("Success")
-        //There is a js function to get current host
+        //Use js function to get current host
         window.location.replace("http://0.0.0.0:8080/video");
       });
 

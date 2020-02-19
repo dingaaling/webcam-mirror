@@ -26,17 +26,10 @@ form_dict = dict()
 form_dict['zipcode'] = '11201'
 form_dict['voterStatus'] = ''
 
-def saveImage(frame):
-
-    hash = govStyling.randomHash()
-    img_name = "portraits/gov-" + hash + ".png"
-    print(img_name)
-    cv2.imwrite(img_name, frame)
-
 
 def detect_face():
     # grab global references to the video stream, output frame, and lock variables
-    global vs, outputFrame, lock, frameCount
+    global vs, outputFrame, lock, frameCount, frame
 
 # loop over frames from the video stream
     while True:
@@ -80,7 +73,6 @@ def detect_face():
 
         frameCount+=1
         if frameCount > 1000:
-            saveImage(frame)
             break
 
         # acquire the lock, set the output frame, and release the lock
@@ -117,6 +109,16 @@ def sample_data():
     action = request.form['action']
     form_dict['taxStatus'] = not form_dict['taxStatus']
 
+@app.route("/save", methods=['POST'])
+def saveImage():
+
+    hash = govStyling.randomHash()
+    img_name = "portraits/gov-" + hash + ".png"
+    cv2.imwrite(img_name, outputFrame)
+    print(img_name)
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
 
 @app.route("/video_feed")
 def video_feed():
@@ -128,6 +130,8 @@ def video_feed():
     t.daemon = True
     t.start()
 
+    print('(video feed) number of current threads is ', threading.active_count())
+
     return Response(generate(),
                     mimetype="multipart/x-mixed-replace; boundary=frame")
 
@@ -138,6 +142,8 @@ def video():
 
 @app.route('/', methods=['GET'])
 def index():
+    print('(index) number of current threads is ', threading.active_count())
+
     return render_template("index_gov.html")
 
 @app.route('/', methods=['POST'])
@@ -152,6 +158,7 @@ def process_form():
     form_dict['borough'] = str(borough)
     form_dict['voterStatus'] = govStyling.getVoterStatus(form_dict)
     print(form_dict)
+    print('(process form) number of current threads is ', threading.active_count())
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 if __name__ == "__main__":
@@ -165,6 +172,7 @@ if __name__ == "__main__":
 
     args = vars(ap.parse_args())
     form_dict['taxStatus'] = False
+    print('(index) number of current threads is ', threading.active_count())
 
     # initialize the video stream and allow the camera sensor to warmup
     vs = VideoStream(src=0).start()

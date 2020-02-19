@@ -5,7 +5,6 @@ import numpy as np
 color_list = [(242, 161, 29), (0, 153, 255), (242, 119, 24), (152, 89, 59),(163, 42, 195), (215, 95, 76), (189, 50, 114), (28, 8, 189), (240, 175, 0), (75, 21, 74), (96, 215, 30), (0, 0, 255)]
 dataPath = os.path.abspath(os.getcwd()) + "/data/"
 
-
 def randomHash():
     hash = random.getrandbits(128)
     return str(hash)
