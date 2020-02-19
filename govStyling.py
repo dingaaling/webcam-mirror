@@ -9,6 +9,10 @@ countyBoroughDict = {'Bronx': 'Bronx', 'Kings': 'Brooklyn', 'New York': 'Manhatt
 partyDict = {'DEM': 'Democrat', 'REP': 'Republican', 'CON': 'Conservative', 'WOR': 'Working Families', 'GRE': 'Green',
             'LBT': 'Libertarian', 'IND': 'Independence', 'SAM': 'Serve America Movement', 'OTH': 'Other', 'BLK': 'No party affiliation'}
 
+def randomHash():
+    hash = random.getrandbits(128)
+    return str(hash)
+
 def mainStyling(frame, zipcode, taxStatus):
     frame_height, frame_width, _ = frame.shape
     cv2.rectangle(frame, (0, 0), (frame_width,50), (0,0,0), -1)
@@ -20,6 +24,26 @@ def mainStyling(frame, zipcode, taxStatus):
     cv2.putText(frame, "Location: " + zipcode,(int(frame_width/2.5), 100), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255),4, cv2.LINE_AA)
 
     return frame
+
+def faceStyling(face, frame, x, y, w, h, color):
+
+    # Pixelate Face
+    im_width, im_height, _ = face.shape
+    temp = cv2.resize(face, (20, 20), interpolation=cv2.INTER_LINEAR)
+    final_face = cv2.resize(temp, (im_height, im_width), interpolation=cv2.INTER_NEAREST)
+    final_output = frame.copy()
+    final_output[y:y+h, x:x+w] = final_face
+
+    # Detect Corners
+    grayscale_face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+    corners = cv2.goodFeaturesToTrack(grayscale_face, 150, 0.01, 10)
+    corners = np.int0(corners)
+
+    for corner in corners:
+        cx,cy = corner.ravel()
+        cv2.circle(final_output,(cx+x,cy+y),3,color,-1)
+
+    return final_output
 
 def mainTextStyling(frame, age, gender):
     frame_height, frame_width, _ = frame.shape
