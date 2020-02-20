@@ -1,0 +1,105 @@
+body {
+  background-color:Black;
+  font-family: 'Fredoka One', cursive;
+
+}
+
+h1 {
+  font-size: 30px;
+  color: White;
+  font-family: 'Fredoka One', cursive;
+
+}
+
+h3 {
+  font-size: 24px;
+  color: White;
+  font-family: 'Fredoka One', cursive;
+
+}
+
+p {
+  font-size: 20px;
+  color: White;
+  font-family: 'Fredoka One', cursive;
+
+}
+
+
+form {
+
+	font-size:20px;
+  color: White;
+	font-weight: lighter;
+  font-family: 'Fredoka One', cursive;
+  margin-bottom: 10px;
+  margin-top: 10px;
+
+
+}
+
+.form-group.required .control-label:after {
+  content:"*";
+  color:red;
+}
+
+input[type="text"]
+{
+    margin-top: 20px;
+    font-size:18px;
+    font-family: 'Fredoka One', cursive;
+    font-weight: lighter;
+    margin-bottom: 10px;
+
+
+}
+
+
+input[type="file"]
+{
+    font-size:18px;
+    font-family: 'Fredoka One', cursive;
+    font-weight: lighter;
+		margin-bottom: 10px;
+
+}
+
+input[type="submit"]
+{
+  background:linear-gradient(to bottom, #3d94f6 5%, #019ad2 100%);
+  background-color:#3d94f6;
+  border-radius:6px;
+  border:1px solid #337fed;
+  display:inline-block;
+  cursor:pointer;
+  color:#ffffff;
+  font-family: 'Fredoka One', cursive;
+  font-weight: lighter;
+  font-size:18px;
+  padding:6px 24px;
+  text-decoration:none;
+  text-shadow:0px 1px 0px #1570cd;
+}
+
+button {
+
+	background:linear-gradient(to bottom, #3d94f6 5%, #019ad2 100%);
+	background-color:#3d94f6;
+	border-radius:6px;
+	border:1px solid #337fed;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+  font-family: 'Fredoka One', cursive;
+  font-weight: lighter;
+	font-size:18px;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #1570cd;
+
+}
+
+button:hover {
+	background:linear-gradient(to bottom, #1e62d0 5%, #3d94f6 100%);
+	background-color:#019ad2;
+}
