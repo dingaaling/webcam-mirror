@@ -1,6 +1,6 @@
 from flask import Response, Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
-import threading, argparse, imutils, cv2, time, os, json
+import threading, argparse, imutils, cv2, time, os, json, sys
 from zipfile import ZipFile
 from imutils.video import VideoStream
 from ageGenderDetect import *
@@ -12,7 +12,6 @@ import govStyling
 # are viewing tthe stream)
 outputFrame = None
 lock = threading.Lock()
-
 
 # initialize a flask object
 app = Flask(__name__)
@@ -29,15 +28,17 @@ form_dict['voterStatus'] = ''
 
 def detect_face():
     # grab global references to the video stream, output frame, and lock variables
-    global vs, outputFrame, lock, frameCount, frame
+    global outputFrame, lock, frameCount, frame
 
 # loop over frames from the video stream
     while True:
 
+        # print('(detect_face) number of current threads is ', threading.active_count())
+
         # read the next frame from the video stream, resize it,
         # convert the frame to grayscale, and blur it
         frame = vs.read()
-        frame = imutils.resize(frame, width=1150)
+        # frame = imutils.resize(frame, width=1150)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (7, 7), 0)
 
@@ -72,8 +73,10 @@ def detect_face():
                 frame = govStyling.voteStyling(frame, form_dict['voterStatus'], form_dict['zipcode'])
 
         frameCount+=1
-        if frameCount > 1000:
-            break
+        if frameCount > 1200:
+            vs.stop()
+            tkill.set()
+            t.join()
 
         # acquire the lock, set the output frame, and release the lock
         with lock:
@@ -108,6 +111,14 @@ def sample_data():
 
     action = request.form['action']
     form_dict['taxStatus'] = not form_dict['taxStatus']
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route("/home", methods=['POST'])
+def home():
+
+    action = request.form['action']
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
 
 @app.route("/save", methods=['POST'])
 def saveImage():
@@ -116,21 +127,15 @@ def saveImage():
     img_name = "portraits/gov-" + hash + ".png"
     cv2.imwrite(img_name, outputFrame)
     print(img_name)
+    vs.stop()
+    tkill.set()
+    t.join()
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 
 @app.route("/video_feed")
 def video_feed():
-    # return the response generated along with the specific media
-    # type (mime type)
-
-    # start a thread that will perform face detection
-    t = threading.Thread(target=detect_face)
-    t.daemon = True
-    t.start()
-
-    print('(video feed) number of current threads is ', threading.active_count())
 
     return Response(generate(),
                     mimetype="multipart/x-mixed-replace; boundary=frame")
@@ -138,13 +143,30 @@ def video_feed():
 @app.route('/video', methods=['GET'])
 def video():
 
-    return render_template("video.html")
+    # return the response generated along with the specific media
+    # type (mime type)
+    global vs, t, tkill
+
+    # initialize the video stream and allow the camera sensor to warmup
+    vs = VideoStream(src=0)
+    vs.start()
+
+    # start a thread that will perform face detection
+    tkill = threading.Event()
+    t = threading.Thread(target=detect_face)
+    t.daemon = True
+    t.start()
+
+    print('(video feed) number of current threads is ', threading.active_count())
+
+    return render_template("video.html", ip=args["ip"], port=args["port"])
 
 @app.route('/', methods=['GET'])
 def index():
+
     print('(index) number of current threads is ', threading.active_count())
 
-    return render_template("index_gov.html")
+    return render_template("index_gov.html", ip=args["ip"], port=args["port"])
 
 @app.route('/', methods=['POST'])
 def process_form():
@@ -169,19 +191,13 @@ if __name__ == "__main__":
     ap.add_argument("-o", "--port", type=int, required=True,
                     help="ephemeral port number of the server (1024 to 65535)")
 
-
     args = vars(ap.parse_args())
     form_dict['taxStatus'] = False
     print('(index) number of current threads is ', threading.active_count())
 
-    # initialize the video stream and allow the camera sensor to warmup
-    vs = VideoStream(src=0).start()
-    time.sleep(2.0)
-
     # start the flask app
     app.run(host=args["ip"], port=args["port"], debug=True,
             threaded=True, use_reloader=False)
-
 
 # release the video stream pointer
 vs.stop()

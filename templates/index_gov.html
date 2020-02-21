@@ -19,7 +19,7 @@
     <div class="container">
 
       <div class="row">
-              <h1>EXPLORE YOUR DATA IDENTITY</h1>
+              <h1>EXPLORE YOUR NEW YORK CITY DATA IDENTITY</h1>
       </div>
 
     <br>
@@ -83,8 +83,13 @@
   </body>
 <script>
 
+
 $(document).ready(function() {
 
+      var ip = '{{ ip }}';
+      var port = '{{ port }}';
+      var videoPath = "http://" + ip + ":" + port + "/video";
+      console.log(videoPath);
 
     $("#submitButton").click(function(){
 
@@ -103,9 +108,9 @@ $(document).ready(function() {
       // Runs when POST request is completed
       function() {
         //MAKE SURE THE RESPONSE IS SUCCESSFUL
-        console.log("Success")
         //Use js function to get current host
-        window.location.replace("http://0.0.0.0:8080/video");
+        window.location.replace(videoPath);
+
       });
 
   })
