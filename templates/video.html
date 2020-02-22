@@ -60,12 +60,12 @@
 
     $("#homeButton").click(function(){
 
+      window.location.replace(root);
       var action = "home";
       var jqda = $.post( "/home",
       {"action" : action},
 
       function() {
-      window.location.replace(root);
       });
 
   })
@@ -99,7 +99,7 @@
   <script>
   (function() {
 
-      const idleDurationSecs = 60;    // X number of seconds
+      const idleDurationSecs = 10;    // X number of seconds
       const redirectUrl = '/';  // Redirect idle users to this URL
       let idleTimeout; // variable to hold the timeout, do not modify
 

@@ -117,6 +117,7 @@ def sample_data():
 def home():
 
     action = request.form['action']
+    os.execl(sys.executable, sys.executable, *sys.argv)
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 

@@ -1,6 +1,6 @@
 from flask import Response, Flask, render_template, request, flash, redirect, send_from_directory, url_for
 from werkzeug.utils import secure_filename
-import threading, argparse, imutils, cv2, time, os, json
+import threading, argparse, imutils, cv2, time, os, json, sys
 from zipfile import ZipFile
 from imutils.video import VideoStream
 from ageGenderDetect import *
@@ -128,6 +128,7 @@ def sample_data():
 def home():
 
     action = request.form['action']
+    os.execl(sys.executable, sys.executable, *sys.argv)
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 
@@ -213,6 +214,8 @@ if __name__ == "__main__":
                     help="ephemeral port number of the server (1024 to 65535)")
 
     args = vars(ap.parse_args())
+
+    print(*sys.argv)
 
     color, adInterestDisplay = newFacebookDisplay('none')
     fb_dict['color'] = color
