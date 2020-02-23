@@ -1,7 +1,6 @@
 from flask import Response, Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
-import threading, argparse, imutils, cv2, time, os, json, sys
-from zipfile import ZipFile
+import threading, argparse, imutils, cv2, time, os, json
 from imutils.video import VideoStream
 from ageGenderDetect import *
 import govStyling
@@ -9,31 +8,37 @@ import govStyling
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful for multiple browsers/tabs
-# are viewing tthe stream)
+# are viewing the stream)
 outputFrame = None
 lock = threading.Lock()
 
 # initialize a flask object
 app = Flask(__name__)
 
+# initialize the face detection model
 faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
 
+# set global age, gender, gov data variables
 detected_gender_list, detected_age_list = [], []
-frameCount = 0
 
 form_dict = dict()
 form_dict['zipcode'] = '11201'
 form_dict['voterStatus'] = ''
+form_dict['stopEvent'] = False
 
-
+# main face detection and video data styling function
 def detect_face():
     # grab global references to the video stream, output frame, and lock variables
-    global outputFrame, lock, frameCount, frame
+    global outputFrame, lock, frame
 
 # loop over frames from the video stream
     while True:
 
-        # print('(detect_face) number of current threads is ', threading.active_count())
+        # check if stop event initiatied to stop video and end thread
+        if form_dict['stopEvent']:
+            vs.stop()
+            print("stop event started")
+            return
 
         # read the next frame from the video stream, resize it,
         # convert the frame to grayscale, and blur it
@@ -51,7 +56,7 @@ def detect_face():
             minSize=(100, 100)
         )
 
-        # detect age, gender and peer group for each detected face
+        # detect and display age, gender and gov data for each detected face
         for (x, y, w, h) in faces:
 
             face = frame[y:y+h, x:x+w]
@@ -72,11 +77,6 @@ def detect_face():
             else:
                 frame = govStyling.voteStyling(frame, form_dict['voterStatus'], form_dict['zipcode'])
 
-        frameCount+=1
-        if frameCount > 1200:
-            vs.stop()
-            tkill.set()
-            t.join()
 
         # acquire the lock, set the output frame, and release the lock
         with lock:
@@ -106,6 +106,7 @@ def generate():
         yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
               bytearray(encodedImage) + b'\r\n')
 
+# if "More Data" button clicked, sample for more data
 @app.route("/sample", methods=['POST'])
 def sample_data():
 
@@ -113,13 +114,16 @@ def sample_data():
     form_dict['taxStatus'] = not form_dict['taxStatus']
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
+# if "Start Over" button clicked, return home and set stop event
 @app.route("/home", methods=['POST'])
 def home():
 
     action = request.form['action']
+    form_dict['stopEvent'] = True
+
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
-
+# if "Save Image" button clicked, save portrait with random hash
 @app.route("/save", methods=['POST'])
 def saveImage():
 
@@ -127,9 +131,6 @@ def saveImage():
     img_name = "portraits/gov-" + hash + ".png"
     cv2.imwrite(img_name, outputFrame)
     print(img_name)
-    vs.stop()
-    tkill.set()
-    t.join()
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
@@ -140,34 +141,40 @@ def video_feed():
     return Response(generate(),
                     mimetype="multipart/x-mixed-replace; boundary=frame")
 
+# main video page displaying face detection video stream
+# start video stream and face detection thread
 @app.route('/video', methods=['GET'])
 def video():
 
     # return the response generated along with the specific media
     # type (mime type)
-    global vs, t, tkill
+    global vs, t
+
+    form_dict['stopEvent'] = False
 
     # initialize the video stream and allow the camera sensor to warmup
     vs = VideoStream(src=0)
     vs.start()
 
     # start a thread that will perform face detection
-    tkill = threading.Event()
     t = threading.Thread(target=detect_face)
     t.daemon = True
     t.start()
 
-    print('(video feed) number of current threads is ', threading.active_count())
+    print('(video feed) number of current threads is ', threading.active_count(), threading.enumerate())
 
     return render_template("video.html", ip=args["ip"], port=args["port"])
 
+# home page - display form
 @app.route('/', methods=['GET'])
 def index():
 
-    print('(index) number of current threads is ', threading.active_count())
+    form_dict['stopEvent'] = True
+    print('(index) number of current threads is ', threading.active_count(), threading.enumerate())
 
     return render_template("index_gov.html", ip=args["ip"], port=args["port"])
 
+# home page - process form data
 @app.route('/', methods=['POST'])
 def process_form():
     form_dict['zipcode'] = request.form['zipCode']
@@ -179,8 +186,9 @@ def process_form():
     borough = govStyling.getBorough(form_dict['zipcode'])
     form_dict['borough'] = str(borough)
     form_dict['voterStatus'] = govStyling.getVoterStatus(form_dict)
+
     print(form_dict)
-    print('(process form) number of current threads is ', threading.active_count())
+    print('(process form) number of current threads is ', threading.active_count(), threading.enumerate())
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 if __name__ == "__main__":
@@ -193,7 +201,7 @@ if __name__ == "__main__":
 
     args = vars(ap.parse_args())
     form_dict['taxStatus'] = False
-    print('(index) number of current threads is ', threading.active_count())
+    print('(index) number of current threads is ', threading.active_count(), threading.enumerate())
 
     # start the flask app
     app.run(host=args["ip"], port=args["port"], debug=True,
