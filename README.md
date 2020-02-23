@@ -12,16 +12,17 @@ Project Organization
     ├── README.md
     ├── main_fb.py              < - flask app to run fb web interface  >
     ├── main_gov.py             < - flask app to run gov web interface  >
-    ├── gov-display.py          < - display gov data >
-    ├── facebook-display.py     < - display facebook data >
+    ├── ageGenderDetect.py      < - helper functions to detect face/age/gender  >
+    ├── facebookStyling.py      < - helper functions for styling facebook video stream  >
+    ├── govStyling.py           < - helper functions for styling gov video stream  >
     ├── models                  <- ML prototxt and caffe models for face/age/gender detection >
     ├── static                  <- CSS files >
-        ├── styles                  
-            ├── main.css                
+    │   ├── styles                  
+    │        ├── main.css                
     ├── templates               <- HTML files >
-        ├── index_fb.html 
-        ├── index_gov.html 
-        ├── video.html 
+    │   ├── index_fb.html       < - display gov form UI >
+    │   ├── index_gov.html      < - display facebook form UI >
+    │   ├── video.html          < - display video stream UI >
     ├── portraits               <- Placeholder for data portraits >
     ├── data                    <- datasets used for app >
     │   ├── fb_data             <- Folder that contains ProPublica FB Ads data or uploaded personal fb ads data >
