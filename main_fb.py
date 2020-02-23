@@ -9,10 +9,11 @@ import facebookStyling
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful for multiple browsers/tabs
-# are viewing tthe stream)
+# are viewing the stream)
 outputFrame = None
 lock = threading.Lock()
 
+# set data path for FB uploads and accepted extension type
 UPLOAD_FOLDER = os.path.abspath(os.getcwd()) + '/data/facebook/'
 ALLOWED_EXTENSIONS = {'zip', 'none'}
 
@@ -20,14 +21,18 @@ ALLOWED_EXTENSIONS = {'zip', 'none'}
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# initialize the face detection model
 faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
 
+# set global age, gender, fb data variables
 detected_gender_list, detected_age_list = [], []
 frameCount = 0
 
 fb_dict = dict()
+fb_dict['stopEvent'] = False
 
 
+# sample for new color and FB data
 def newFacebookDisplay(fbfilePath):
 
     color = facebookStyling.colorSample()
@@ -37,6 +42,13 @@ def newFacebookDisplay(fbfilePath):
     return color, adInterestDisplay
 
 
+# Check for Allowed file type
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# main face detection and video data styling function
 def detect_face():
     # grab global references to the video stream, output frame, and lock variables
     global vs, outputFrame, lock, frameCount, frame
@@ -44,7 +56,11 @@ def detect_face():
 # loop over frames from the video stream
     while True:
 
-        # print('(detect_face) number of current threads is ', threading.active_count())
+        # check if stop event initiatied to stop video and end thread
+        if fb_dict['stopEvent']:
+            vs.stop()
+            print("stop event started")
+            return
 
         # read the next frame from the video stream, resize it,
         # convert the frame to grayscale, and blur it
@@ -62,7 +78,7 @@ def detect_face():
             minSize=(100, 100)
         )
 
-        # detect age, gender and peer group for each detected face
+        # detect and display age, gender and fb data for each detected face
         for (x, y, w, h) in faces:
 
             face = frame[y:y+h, x:x+w]
@@ -80,11 +96,6 @@ def detect_face():
             frame = facebookStyling.peerText(frame, peerGroupDisplay)
             frame = facebookStyling.styleFacebookData(frame, fb_dict['ads'], x, y, w, h, fb_dict['color'])
 
-        frameCount+=1
-        if frameCount > 1200:
-            vs.stop()
-            tkill.set()
-            t.join()
 
         # acquire the lock, set the output frame, and release the lock
         with lock:
@@ -114,6 +125,7 @@ def generate():
         yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
               bytearray(encodedImage) + b'\r\n')
 
+# if "More Data" button clicked, sample for more data
 @app.route("/sample", methods=['POST'])
 def sample_data():
 
@@ -124,13 +136,16 @@ def sample_data():
 
     return action
 
+# if "Start Over" button clicked, return home and set stop event
 @app.route("/home", methods=['POST'])
 def home():
 
     action = request.form['action']
+    fb_dict['stopEvent'] = True
+
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
-
+# if "Save Image" button clicked, save portrait with random hash
 @app.route("/save", methods=['POST'])
 def saveImage():
 
@@ -138,9 +153,7 @@ def saveImage():
     img_name = "portraits/facebook-" + hash + ".png"
     cv2.imwrite(img_name, outputFrame)
     print(img_name)
-    vs.stop()
-    tkill.set()
-    t.join()
+
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 
@@ -150,17 +163,20 @@ def video_feed():
     return Response(generate(),
                     mimetype="multipart/x-mixed-replace; boundary=frame")
 
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
+# main video page displaying face detection video stream
+# start video stream and face detection thread
 @app.route('/video/<filename>')
 def video(filename):
 
     # return the response generated along with the specific media
     # type (mime type)
-    global vs, t, tkill
+    global vs, t
+
+    fb_dict['stopEvent'] = False
+
+    # initialize the video stream and allow the camera sensor to warmup
+    vs = VideoStream(src=0)
+    vs.start()
 
     if filename !="none":
         fb_dict['fbFolder'] = UPLOAD_FOLDER + filename.split(".")[0]
@@ -171,38 +187,45 @@ def video(filename):
     else:
         fb_dict['fbFolder'] = "none"
 
-    # initialize the video stream and allow the camera sensor to warmup
-    vs = VideoStream(src=0)
-    vs.start()
-
     # start a thread that will perform face detection
-    tkill = threading.Event()
     t = threading.Thread(target=detect_face)
     t.daemon = True
     t.start()
 
+    print('(video feed) number of current threads is ', threading.active_count(), threading.enumerate())
+
+
     return render_template("video.html", ip=args["ip"], port=args["port"])
 
+# home page - display form
+@app.route('/', methods=['GET'])
+def index():
 
-@app.route('/', methods=['GET', 'POST'])
-def upload_file():
-    if request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
-        # if user does not select file, browser also
-        # submit an empty part without filename
-        if file.filename == '':
-            filename = "none"
-            return redirect(url_for('video', filename=filename))
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('video', filename=filename))
+    fb_dict['stopEvent'] = True
+    print('(index) number of current threads is ', threading.active_count(), threading.enumerate())
 
     return render_template("index_fb.html")
+
+# home page - process upload form
+@app.route('/', methods=['POST'])
+def upload_file():
+    # check if the post request has the file part
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    # if user does not select file, browser also
+    # submit an empty part without filename
+    if file.filename == '':
+        filename = "none"
+        return redirect(url_for('video', filename=filename))
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return redirect(url_for('video', filename=filename))
+
+    print('(index) number of current threads is ', threading.active_count(), threading.enumerate())
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 if __name__ == "__main__":
     # construct the argument parser and parse command line arguments
