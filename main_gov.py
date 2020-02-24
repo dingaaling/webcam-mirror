@@ -189,7 +189,10 @@ def process_form():
     form_dict['birthYear'] = str(request.form['birthYear'])
     borough = govStyling.getBorough(form_dict['zipcode'])
     form_dict['borough'] = str(borough)
-    form_dict['voterStatus'] = govStyling.getVoterStatus(form_dict)
+    try:
+        form_dict['voterStatus'] = govStyling.getVoterStatus(form_dict)
+    except:
+        form_dict['voterStatus'] = "Not Registered in NYC"
 
     print(form_dict)
     print('(process form) number of current threads is ', threading.active_count(), threading.enumerate())
