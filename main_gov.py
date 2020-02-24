@@ -1,6 +1,6 @@
 from flask import Response, Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
-import threading, argparse, imutils, cv2, time, os, json
+import threading, argparse, imutils, cv2, time, os, json, jsonify
 from imutils.video import VideoStream
 from ageGenderDetect import *
 import govStyling
@@ -18,9 +18,6 @@ app = Flask(__name__)
 # initialize the face detection model
 faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
 
-# set global age, gender, gov data variables
-detected_gender_list, detected_age_list = [], []
-
 form_dict = dict()
 form_dict['zipcode'] = '11201'
 form_dict['voterStatus'] = ''
@@ -30,6 +27,9 @@ form_dict['stopEvent'] = False
 def detect_face():
     # grab global references to the video stream, output frame, and lock variables
     global outputFrame, lock, frame
+
+    # set global age, gender, gov data variables
+    detected_gender_list, detected_age_list = [], []
 
 # loop over frames from the video stream
     while True:
@@ -105,6 +105,10 @@ def generate():
         # yield the output frame in the byte format
         yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' +
               bytearray(encodedImage) + b'\r\n')
+
+@app.route("/heartbeat")
+def heartbeat():
+    return jsonify({"status": "healthy"})
 
 # if "More Data" button clicked, sample for more data
 @app.route("/sample", methods=['POST'])
