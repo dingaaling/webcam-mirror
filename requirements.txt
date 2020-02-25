@@ -10,5 +10,5 @@ python-dateutil==2.8.1
 pytz==2019.3
 requests==2.22.0
 Werkzeug==1.0.0
-opencv_python==4.2
+opencv_python
 
