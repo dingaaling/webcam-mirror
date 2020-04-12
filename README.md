@@ -8,13 +8,13 @@ Use a webcam as a mirror for your data identity.
 
 # Demo
 
-Facebook Mirror interface demo - uploading my own Facebook Data
+## Facebook Mirror interface demo - uploading my own Facebook Data
 ![](https://github.com/dingaaling/webcam-mirror/blob/master/static/FB-Jen.gif)
 
-Facebook Mirror interface demo - using Propublica Data (**Not my data!**)
+## Facebook Mirror interface demo - using Propublica Data (**Not my data!**)
 ![](https://github.com/dingaaling/webcam-mirror/blob/master/static/FB-Propublica.gif)
 
-New York City Mirror interface demo 
+## New York City Mirror interface demo 
 ![](https://github.com/dingaaling/webcam-mirror/blob/master/static/NYC.gif)
 
 
