@@ -6,6 +6,18 @@ Use a webcam as a mirror for your data identity.
 * Run python `main_gov.py --ip 0.0.0.0 --port 8080` or `python main_fb.py --ip 0.0.0.0 --port 8080` to start the app and input data
 * After data submission, view your Facebook, Government, and other demographics data displayed over a live OpenCV facial detection display
 
+# Demo
+
+Facebook Mirror interface demo - uploading my own Facebook Data
+![](https://github.com/dingaaling/webcam-mirror/static/FB-Jen.gif)
+
+Facebook Mirror interface demo - using Propublica Data (**Not my data!**)
+![](https://github.com/dingaaling/webcam-mirror/static/FB-Propublica.gif)
+
+New York City Mirror interface demo 
+![](https://github.com/dingaaling/webcam-mirror/static/NYC.gif)
+
+
 Project Organization
 ------------
 
