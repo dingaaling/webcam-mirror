@@ -1,17 +1,16 @@
 # webcam-mirror
 ==============================
 
-Use a webcam as a mirror for your data identity.
+* Use a webcam as a mirror to view your data identities
+* Flask app that accepts basic user information to display your Facebook and New York City data over a live OpenCV facial detection visualization
+* An exploration tool that allows you to explore your own data, as well as aggregated data of other New York residents and crowdsourced FB ads dataset from Propublica (https://www.propublica.org/datastore/dataset/facebook-ad-categories)
 
-* Run python `main_gov.py --ip 0.0.0.0 --port 8080` or `python main_fb.py --ip 0.0.0.0 --port 8080` to start the app and input data
-* After data submission, view your Facebook, Government, and other demographics data displayed over a live OpenCV facial detection display
-
-# Demo
+# Demos
 
 ## Facebook Mirror interface demo - uploading my own Facebook Data
 ![](https://github.com/dingaaling/webcam-mirror/blob/master/static/FB-Jen.gif)
 
-## Facebook Mirror interface demo - using Propublica Data (**Not my data!**)
+## Facebook Mirror interface demo - using Propublica FB Ads Dataset (**Not my data!**)
 ![](https://github.com/dingaaling/webcam-mirror/blob/master/static/FB-Propublica.gif)
 
 ## New York City Mirror interface demo 
