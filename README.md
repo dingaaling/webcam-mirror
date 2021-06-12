@@ -1,14 +1,10 @@
 # webcam-mirror
-==============================
 
+Project Description:
 * Use a webcam as a mirror to view your data identities
 * Flask app that accepts basic user information to display your Facebook and New York City data over a live OpenCV facial detection visualization
 * An exploration tool that allows you to explore your own data, as well as aggregated data of other New York residents and crowdsourced FB ads dataset from Propublica (https://www.propublica.org/datastore/dataset/facebook-ad-categories)
-
-# 2020 Data x Design Exhibit
-
-![](https://github.com/dingaaling/webcam-mirror/blob/master/static/DxD_1.png)
-![](https://github.com/dingaaling/webcam-mirror/blob/master/static/DxD_2.png)
+* Developed for the 2020 Data x Design Exhibit
 
 # Demos
 
@@ -48,11 +44,15 @@ Project Organization
     │   ├── zipmap.json         <- Dataset that maps zipcode to county >
     │   ├── fb_propublica.json  <- Propublica FB ads dataset >
 
+*Note: in the repo models, portraits, and data folders are in root.zip file  
 --------
 
 ## Getting this running on your computer
 
 Requirements:
+- Python3
+- Computer with Webcam
+
 ```
 pip install requirements.txt
 ```
@@ -66,3 +66,8 @@ or
 ```
 python main_gov.py --ip 0.0.0.0 --port 8080
 ```
+
+# webcam-mirror in the wild: 2020 Data x Design Exhibit
+
+![](https://github.com/dingaaling/webcam-mirror/blob/master/static/DxD_1.png)
+![](https://github.com/dingaaling/webcam-mirror/blob/master/static/DxD_2.png)
