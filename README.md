@@ -1,6 +1,6 @@
 # webcam-mirror
 
-Project Description:
+## Project Description:
 * Use a webcam as a mirror to view your data identities
 * Flask app that accepts basic user information to display your Facebook and New York City data over a live OpenCV facial detection visualization
 * An exploration tool that allows you to explore your own data, as well as aggregated data of other New York residents and crowdsourced FB ads dataset from Propublica (https://www.propublica.org/datastore/dataset/facebook-ad-categories)
@@ -44,8 +44,8 @@ Project Organization
     │   ├── zipmap.json         <- Dataset that maps zipcode to county >
     │   ├── fb_propublica.json  <- Propublica FB ads dataset >
 
-*Note: in the repo models, portraits, and data folders are in root.zip file  
 --------
+*Note: in the repo models, portraits, and data folders are in root.zip file  
 
 ## Getting this running on your computer
 
